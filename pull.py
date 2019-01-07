@@ -1,4 +1,4 @@
-from common import copy
+from common import copy, fail, succeed
 import os
 import mutagen
 
@@ -12,18 +12,8 @@ PHONE_BACKUPS = os.path.expanduser(
 DESTINATION = '/Volumes/media/temp-audiobooks/'
 NEW = '/Volumes/media/temp-audiobooks/new/'
 
-fail_codes = "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
 
-def fail(n):
-    # print(fail_codes[n], end='')
-    pass
-
-def succeed():
-    # print("💎", end='')
-    pass
-
-def get_and_tag(path, destination=DESTINATION, organize=True, get=copy, dryrun=False):
-    origpath, filename = os.path.split(path)
+def set_tags(path):
     try:
         tags = mutagen.File(path, easy=True)
     except mutagen.mp3.HeaderNotFoundError:
@@ -39,7 +29,6 @@ def get_and_tag(path, destination=DESTINATION, organize=True, get=copy, dryrun=F
         if tags['genre'] in (['Ringtone'],['Other']):
             fail(3)
             return
-    
     try:
         title, track = tags['title'][0].split(' - Part ')
     except ValueError:
@@ -69,12 +58,24 @@ def get_and_tag(path, destination=DESTINATION, organize=True, get=copy, dryrun=F
         tags['album'] = album
         tags['version'] = series
     tags.save()
-    
-    newname = tags['title'][0] + '.mp3'
+    return {
+        'filename' : tags['title'][0] + '.mp3',
+        'title' : title,
+        'author' : author,
+        }
+
+
+def get_and_tag(path, destination=DESTINATION, organize=True, get=copy, dryrun=False):
+    origpath, filename = os.path.split(path)
+
+    info = set_tags(path)
+    if info is None:
+        return
     if organize:
-        newpathandname = os.path.join(destination, author, title, newname )
+        newpathandname = os.path.join(destination, info['author'], 
+                                            info['title'], info['filename'] )
     else:
-        newpathandname = os.path.join(destination, newname)
+        newpathandname = os.path.join(destination, info['filename'])
     if not dryrun:
         get(path, newpathandname)
     succeed()

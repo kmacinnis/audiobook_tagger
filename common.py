@@ -1,7 +1,34 @@
 import os
 import shutil
 import errno
+import mutagen
 
+
+
+fail_codes = "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
+
+def fail(n):
+    # print(fail_codes[n], end='')
+    pass
+
+def succeed():
+    # print("💎", end='')
+    pass
+
+def display_tags(path):
+    print(f'Tags for {path}')
+    try:
+        tags = mutagen.File(path, easy=True)
+    except mutagen.mp3.HeaderNotFoundError:
+        print('Cannot read tags')
+        return
+    for key in tags.keys(): 
+        print('        •', key.ljust(16), tags[key])
+    print()
+
+def preview_tags(dirs):
+    for directory in dirs: 
+        display_tags(get_mp3_files(directory)[0])
 
 def mkdir_p(path):
     '''Makes directories, ignoring errors if it already exists'''
@@ -34,5 +61,7 @@ def makelist(startdir):
             dirlist.append(root)
     return dirlist
 
-
+def get_mp3_files(directory):
+    return [os.path.join(directory, i)
+                         for i in os.listdir(directory) if i[-4:]=='.mp3']
 
