@@ -79,7 +79,7 @@ def user_chooses_match(gc, tags):
     for i, item in enumerate(score_chart, 1):
         book = item['result']
         score = item['score']
-        print(f"    {i}. {book.title} - {book.authors[0]}   ({score}) ")
+        print(f"    {i}. {book.title} - {book.authors[0]}   (score: {score}) ")
     
     n = input("   Enter line number (or non-number to skip): ")
     try:
@@ -91,10 +91,6 @@ def user_chooses_match(gc, tags):
     return result
 
 
-
-
-
-
 def update_date_tags(dirs, auto=True, dryrun=False):
     if auto:
         match = find_best_match
@@ -103,7 +99,7 @@ def update_date_tags(dirs, auto=True, dryrun=False):
     gc = client.GoodreadsClient(API_KEY, CLIENT_SECRET)
     failures = []
     for index, directory in enumerate(dirs):
-        print(f'{directory}        <{index}>')
+        print(f'<{index}> {directory}')
         mp3files = [os.path.join(directory, i) 
                     for i in os.listdir(directory) if i[-4:]=='.mp3']
         tags = mutagen.File(mp3files[0], easy=True)
@@ -165,24 +161,19 @@ def update_date_tags(dirs, auto=True, dryrun=False):
         print()
     return failures
 
+directory = '/Volumes/media/temp-audiobooks/xnew/Mansfield Park x'
+def prefix_title(directory):
+    mp3files = [os.path.join(directory, i) 
+                for i in os.listdir(directory) if i[-4:]=='.mp3']
+    booktitle = 'Mansfield Park'
+    for item in mp3files:
+        tags = mutagen.File(item, easy=True)
+        titletag = tags['title'][0]
+        newtitle = f'{booktitle} - Part {titletag}'
+        tags['title'] = newtitle
+        tags.save()
+        print(newtitle)
 
-def fix_stupid_mistake(dirs):
-    for directory in dirs:
-        print(directory)
-        mp3files = [os.path.join(directory, i) 
-                    for i in os.listdir(directory) if i[-4:]=='.mp3']
-        for item in mp3files:
-            tags = mutagen.File(item, easy=True)
-            tracktag = tags['tracknumber'][0]
-            
-            if "'" in tracktag:
-                tracktag = tracktag.split("'")[1]
-                tags['tracknumber'] = tracktag
-                print(tracktag)
-                tags.save()
-            else:
-                print('~')
-        print()
 
 def tag_test(tags):
     try:

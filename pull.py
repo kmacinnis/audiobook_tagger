@@ -40,6 +40,10 @@ def set_tags(path):
             return   # can't figure out title & track from filename or tags
     if 'artist' in tags.keys():
         artist_tag = tags['artist']
+        if '&#169;' in artist_tag:
+            artist_tag = artist_tag.split('&#169;')[0]
+        if '©' in artist_tag:
+            artist_tag = artist_tag.split('©')[0]
         creators = artist_tag[0].split('/')
         author = creators[0]
         narrator = ', '.join(creators[1:])
@@ -65,7 +69,7 @@ def set_tags(path):
         }
 
 
-def get_and_tag(path, destination=DESTINATION, organize=True, get=copy, dryrun=False):
+def get_and_tag(path, destination, organize=True, get=copy, dryrun=False):
     origpath, filename = os.path.split(path)
 
     info = set_tags(path)
@@ -80,17 +84,9 @@ def get_and_tag(path, destination=DESTINATION, organize=True, get=copy, dryrun=F
         get(path, newpathandname)
     succeed()
     return newpathandname
-    
-
-# def organize_files(maindir):
-#     for item in os.listdir(maindir):
-#         f = os.path.join(maindir,item)
-#         if f[-4:] == '.mp3':
-#             print(f)
-#             movefiles(f)
 
 
-def pull_mp3_files(startdir=PHONE_BACKUPS, destination=DESTINATION,
+def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
               desired_types=DESIRED_TYPES, organize=True, 
               move_without_copying=False, dryrun=False):
 
@@ -111,6 +107,7 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=DESTINATION,
             newpath = get_and_tag(filepathandname, **kwargs)
             if newpath:
                 mp3files.append(newpath)
+                print(newpath)
     return mp3files
 
 
