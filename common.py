@@ -4,6 +4,10 @@ import errno
 import mutagen
 
 
+NEW = '/Volumes/media/temp-audiobooks/new/'
+PHONE_BACKUPS = os.path.expanduser(
+    '~/Library/Application Support/MobileSync/Backup')
+
 
 fail_codes = "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
 
@@ -55,6 +59,7 @@ def merge(old, new):
             os.renames(oldpathandname, newpathandname)
 
 def makelist(startdir):
+    '''Makes a list of directories that only contain files (no directories)'''
     dirlist = []
     for root, dirs, files in os.walk(startdir, followlinks=True):
         if dirs == []:

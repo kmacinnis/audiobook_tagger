@@ -91,7 +91,10 @@ def user_chooses_match(gc, tags):
     return result
 
 
-def update_date_tags(dirs, auto=True, dryrun=False):
+def update_tags(dirs, auto=True, dryrun=False):
+    '''Updates date tag with original publication date from goodreads,
+    updates track number to contain totaltracks,
+    '''
     if auto:
         match = find_best_match
     else:
@@ -138,6 +141,13 @@ def update_date_tags(dirs, auto=True, dryrun=False):
             pubdate = f'{year}{month:0>2}'
         else:
             pubdate = year
+        if book.series_works:
+            try:
+                series_dict = book.series_works['series_work'][0]
+            except:
+                series_dict = book.series_works['series_work']
+        else:
+            series_dict = None
         for item in mp3files:
             tags = mutagen.File(item, easy=True)
             print(f"   - {tags['title'][0]}")
@@ -156,12 +166,23 @@ def update_date_tags(dirs, auto=True, dryrun=False):
             if 'language' in tags.keys() and tags['language'] == ['XXX']:
                 tags['language'] = 'English'
                 print(f"     • Changed language from 'XXX' to 'English'")
+            if series_dict:
+                try:
+                    orig_version = tags['version'][0]
+                except KeyError:
+                    orig_version = None
+                series_title = series_dict['series']['title']
+                item_num = series_dict['user_position']
+                series_info = f"{series_title} Series, Book {item_num}"
+                if series_info != orig_version:
+                    tags['version'] = series_info
+                    print(f"     • Changed {orig_version} to {series_info}")
             if not dryrun:
                 tags.save()
         print()
     return failures
 
-directory = '/Volumes/media/temp-audiobooks/xnew/Mansfield Park x'
+
 def prefix_title(directory):
     mp3files = [os.path.join(directory, i) 
                 for i in os.listdir(directory) if i[-4:]=='.mp3']
@@ -174,6 +195,16 @@ def prefix_title(directory):
         tags.save()
         print(newtitle)
 
+def check_versions(place):
+    dirs = makelist(place)
+    for index, directory in enumerate(dirs):
+        print(f'<{index}> {directory}')
+        mp3files = [os.path.join(directory, i) 
+                    for i in os.listdir(directory) if i[-4:]=='.mp3']
+        tags = mutagen.File(mp3files[0], easy=True)
+        if 'version' in tags:
+            print(tags['version'])
+        print('--') 
 
 def tag_test(tags):
     try:

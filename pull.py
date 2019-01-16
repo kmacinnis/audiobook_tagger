@@ -1,16 +1,7 @@
-from common import copy, fail, succeed
+from common import copy, fail, succeed, PHONE_BACKUPS, NEW
 import os
 import mutagen
 
-DESIRED_TYPES = [
-    # These are the only ones that I've found audiobooks in
-    'application/octet-stream',
-    'audio/mpeg',
-]
-PHONE_BACKUPS = os.path.expanduser(
-    '~/Library/Application Support/MobileSync/Backup')
-DESTINATION = '/Volumes/media/temp-audiobooks/'
-NEW = '/Volumes/media/temp-audiobooks/new/'
 
 
 def set_tags(path):
@@ -87,8 +78,7 @@ def get_and_tag(path, destination, organize=True, get=copy, dryrun=False):
 
 
 def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
-              desired_types=DESIRED_TYPES, organize=True, 
-              move_without_copying=False, dryrun=False):
+              organize=True, move_without_copying=False, dryrun=False):
 
     print(f"Pulling mp3 files from {startdir}")
     kwargs = {
@@ -111,3 +101,5 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
     return mp3files
 
 
+
+        
