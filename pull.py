@@ -29,7 +29,9 @@ def set_tags(path):
         except KeyError:
             fail(4)
             return   # can't figure out title & track from filename or tags
-    if 'artist' in tags.keys():
+    if 'artist' in tags.keys() and 'composer' in tags.keys():
+        author = tags['artist'][0]
+    elif 'artist' in tags.keys() and 'composer' not in tags.keys():
         artist_tag = tags['artist']
         if '&#169;' in artist_tag:
             artist_tag = artist_tag.split('&#169;')[0]
@@ -80,7 +82,8 @@ def get_and_tag(path, destination, organize=True, get=copy, dryrun=False):
 def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
               organize=True, move_without_copying=False, dryrun=False):
 
-    print(f"Pulling mp3 files from {startdir}")
+    line = f"Pulling mp3 files from {startdir}:"
+    print(f"{line}\n{'-'*len(line)}")
     kwargs = {
         'destination' : destination,
         'dryrun' : dryrun,

@@ -1,7 +1,7 @@
 import mutagen
 # from mutagen.id3 import TDRC
 from pull import set_tags
-from common import get_mp3_files
+from common import get_mp3_files, gr_genres, genre_dict
 from Levenshtein import distance
 import os
 
@@ -105,6 +105,8 @@ def update_tags(dirs, auto=True, dryrun=False):
         print(f'<{index}> {directory}')
         mp3files = [os.path.join(directory, i) 
                     for i in os.listdir(directory) if i[-4:]=='.mp3']
+        if mp3files == []:
+            continue
         tags = mutagen.File(mp3files[0], easy=True)
         result = match(gc, tags)
         if result is None:
@@ -148,6 +150,10 @@ def update_tags(dirs, auto=True, dryrun=False):
                 series_dict = book.series_works['series_work']
         else:
             series_dict = None
+        shelves = {shelf.name for shelf in book.popular_shelves[:10]}
+        shelves.add('audiobook')
+        genres = {genre_dict[i] for i in shelves.intersection(gr_genres)}
+        genres = list(genres)
         for item in mp3files:
             tags = mutagen.File(item, easy=True)
             print(f"   - {tags['title'][0]}")
@@ -176,7 +182,14 @@ def update_tags(dirs, auto=True, dryrun=False):
                 series_info = f"{series_title} Series, Book {item_num}"
                 if series_info != orig_version:
                     tags['version'] = series_info
-                    print(f"     • Changed {orig_version} to {series_info}")
+                    print(f"     • Changed series from {orig_version} to {series_info}")
+            try:
+                orig_genres = tags['genre']
+            except KeyError:
+                orig_genres = None
+            if genres != orig_genres:
+                tags['genre'] = genres
+                print(f"     • Changed genre from {orig_genres} to {genres}")
             if not dryrun:
                 tags.save()
         print()
@@ -232,14 +245,6 @@ def set_initial_tags(dirs):
         for mp3file in mp3files:
             set_tags(os.path.join(bookdir,mp3file))
         
-def fix_discworld_books(dirs):
-    for bookdir in dirs:
-        for mp3file in get_mp3_files(bookdir):
-            tags = mutagen.File(mp3file, easy=True)
-            origalbum = tags['album'][0]
-            tags['album'] = origalbum[5:]
-            tags.save()
-
 
 
 
