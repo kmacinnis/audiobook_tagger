@@ -1,6 +1,6 @@
 import os
 import mutagen
-
+from common import *
 
 DONE = '/Volumes/media/temp-audiobooks/done/'
 
@@ -126,6 +126,36 @@ def tag_and_copy(path):
     filename = tags['title'][0]
     newpath = os.path.join(origpath, author, title, filename)
     os.renames(path, newpath)
+
+
+def check_for_genres(root):
+    dirs = makelist(root)
+    genreless = []
+    for directory in dirs:
+        mp3file = get_single_mp3(directory)
+        if mp3file:
+            tags = mutagen.File(mp3file, easy=True)
+            if 'genre' not in tags.keys():
+                genreless.append(directory)
+    return genreless
+
+
+
+def get_books_from_genre(root, genre):
+    if genre not in my_genres:
+        print(f"{genre} not in local genres")
+        return
+    dirs = makelist(root)
+    desired = []
+    for directory in dirs:
+        mp3file = get_single_mp3(directory)
+        try:
+            tags = mutagen.File(mp3file, easy=True)
+            if genre in tags['genre']:
+                desired.append(directory)
+        except:
+            pass
+    return desired
 
 
 

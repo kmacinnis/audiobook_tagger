@@ -4,8 +4,10 @@ import errno
 import mutagen
 
 
-NEW = '/Volumes/media/temp-audiobooks/new/'
 MAIN = "/Volumes/media/audiobooks/"
+TEMP = '/Volumes/media/temp-audiobooks/'
+NEW = '/Volumes/media/temp-audiobooks/new/'
+HOLDING = "/Volumes/media/temp-audiobooks/holding-pen/"
 PHONE_BACKUPS = os.path.expanduser(
     '~/Library/Application Support/MobileSync/Backup')
 
@@ -59,6 +61,7 @@ genre_dict = {
     'comics-and-graphic-novels' : "Comics",
 }
 gr_genres = set(genre_dict.keys())
+my_genres = {genre_dict[x] for x in gr_genres}
 
 
 def fail(n):
@@ -133,4 +136,10 @@ def makelist(startdir, limit=None):
 def get_mp3_files(directory):
     return [os.path.join(directory, i)
                 for i in os.listdir(directory) if i[-4:]=='.mp3']
+
+def get_single_mp3(directory):
+    allmp3s = get_mp3_files(directory)
+    if allmp3s == []:
+        return None
+    return allmp3s[0]
 

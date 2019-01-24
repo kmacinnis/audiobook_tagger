@@ -5,6 +5,14 @@ import mutagen
 
 
 def set_tags(path):
+    
+    def remove_copyright(text):
+        if '&#169;' in text:
+            text = text.split('&#169;')[0]
+        if '©' in text:
+            text = text.split('©')[0]
+        return text
+        
     try:
         tags = mutagen.File(path, easy=True)
     except mutagen.mp3.HeaderNotFoundError:
@@ -30,13 +38,11 @@ def set_tags(path):
             fail(4)
             return   # can't figure out title & track from filename or tags
     if 'artist' in tags.keys() and 'composer' in tags.keys():
-        author = tags['artist'][0]
+        author = remove_copyright(tags['artist'][0])
+        tags['artist'] = author
+        tags['composer'] = remove_copyright(tags['composer'][0])
     elif 'artist' in tags.keys() and 'composer' not in tags.keys():
-        artist_tag = tags['artist']
-        if '&#169;' in artist_tag:
-            artist_tag = artist_tag.split('&#169;')[0]
-        if '©' in artist_tag:
-            artist_tag = artist_tag.split('©')[0]
+        artist_tag = remove_copyright(tags['artist'])
         creators = artist_tag[0].split('/')
         author = creators[0]
         narrator = ', '.join(creators[1:])
@@ -83,7 +89,7 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
               organize=True, move_without_copying=False, dryrun=False):
 
     line = f"Pulling mp3 files from {startdir}:"
-    print(f"{line}\n{'-'*len(line)}")
+    print(f"{line}\n{'‾'*len(line)}")
     kwargs = {
         'destination' : destination,
         'dryrun' : dryrun,
