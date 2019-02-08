@@ -1,7 +1,8 @@
 import mutagen
-# from mutagen.id3 import TDRC
+from mutagen.id3 import ID3, COMM, Encoding
+
 from pull import set_tags
-from common import get_mp3_files, gr_genres, genre_dict
+from common import get_mp3_files, gr_genres, genre_dict, get_dirs
 from Levenshtein import distance
 import os
 
@@ -186,8 +187,8 @@ def update_tags(dirs, auto=True, dryrun=False):
             try:
                 orig_genres = tags['genre']
             except KeyError:
-                orig_genres = None
-            if genres != orig_genres:
+                orig_genres = []
+            if set(genres) != set(orig_genres):
                 tags['genre'] = genres
                 print(f"     • Changed genre from {orig_genres} to {genres}")
             if not dryrun:
@@ -246,5 +247,51 @@ def set_initial_tags(dirs):
             set_tags(os.path.join(bookdir,mp3file))
         
 
-
+def update_descriptions(start, auto=True, dryrun=False):
+    '''Updates comments tag with book description from goodreads,
+    '''
+    dirs = get_dirs(start)
+    if auto:
+        match = find_best_match
+    else:
+        match = user_chooses_match
+    gc = client.GoodreadsClient(API_KEY, CLIENT_SECRET)
+    failures = []
+    for index, directory in enumerate(dirs):
+        print(f'<{index}> {directory}')
+        mp3files = [os.path.join(directory, i) 
+                    for i in os.listdir(directory) if i[-4:]=='.mp3']
+        if mp3files == []:
+            continue
+        tags = mutagen.File(mp3files[0], easy=True)
+        result = match(gc, tags)
+        if result is None:
+            print("************* Problem matching book.")
+            print("************* No results from goodreads")
+            print()
+            failures.append(directory)
+            continue
+        elif result['score'] > 5:
+            print("************* Problem matching book.")
+            print(f"************* Best match is {result} ")
+            print()
+            failures.append(directory)
+            continue
+        else:
+            book = result['result']
+            print(f'   Matched to {book}' )
+            text = book.description
+            print(f'   {text}')
+            for mp3file in mp3files:
+                tags = ID3(mp3file)
+                print(f"   - {tags['TIT2'].text[0]}")
+                
+                tags.delall("COMM")
+                tags["COMM::eng"] = COMM(
+                    encoding=Encoding.UTF8,
+                    lang='eng',
+                    text=text,
+                )
+                tags.save()
+ 
 

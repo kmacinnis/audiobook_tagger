@@ -8,8 +8,11 @@ MAIN = "/Volumes/media/audiobooks/"
 TEMP = '/Volumes/media/temp-audiobooks/'
 NEW = '/Volumes/media/temp-audiobooks/new/'
 HOLDING = "/Volumes/media/temp-audiobooks/holding-pen/"
+FROM_CD = "/Volumes/media/temp-audiobooks/From CD/"
 PHONE_BACKUPS = os.path.expanduser(
     '~/Library/Application Support/MobileSync/Backup')
+KIDS = "/Volumes/media/sorted_audiobooks/kids_audiobooks"
+KIDS_CHAPTERBOOKS = "/Volumes/media/sorted_audiobooks/kids_chapter_audiobooks/"
 
 
 fail_codes = "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
@@ -59,6 +62,12 @@ genre_dict = {
     'graphic-novels-comics' : "Comics",
     'comic-books' : "Comics",
     'comics-and-graphic-novels' : "Comics",
+    
+    'picture-books' : "Picture Books",
+    'picture-book' : "Picture Books",
+    'kids-picture-books' : "Picture Books",
+    'preschool' : "Picture Books",
+    'picturebooks' : "Picture Books",
 }
 gr_genres = set(genre_dict.keys())
 my_genres = {genre_dict[x] for x in gr_genres}
@@ -103,13 +112,16 @@ def copy(old, new):
     mkdir_p(newpath)
     shutil.copy(old, new)
 
-def merge(old, new):
-    for root, dirs, files in os.walk(old, followlinks=True):
+def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
+    print(f"Merging files from {from_dir} to {to_dir}")
+    for root, dirs, files in os.walk(from_dir, followlinks=True):
         for name in files:
             oldpathandname = os.path.join(root, name)
-            relpath = os.path.relpath(oldpathandname, start=old)
-            newpathandname = os.path.join(new,relpath)
-            os.renames(oldpathandname, newpathandname)
+            relpath = os.path.relpath(oldpathandname, start=from_dir)
+            newpathandname = os.path.join(to_dir,relpath)
+            if overwrite or not os.path.exists(newpathandname):
+                os.renames(oldpathandname, newpathandname)
+                print(f" - {relpath}")
 
 def organize_by_tag(root):
     for name in os.listdir(root):
@@ -132,6 +144,18 @@ def makelist(startdir, limit=None):
     if limit:
         return dirlist[:limit]
     return dirlist
+
+def get_parent_folders(filelist):
+    parent_folders = set()
+    for f in filelist:
+        parent_folders.add(os.path.dirname(f))
+
+def get_dirs(startdir):
+    if isinstance(startdir, str):
+        dirs = makelist(startdir)
+    else:
+        dirs = startdir
+    return dirs
 
 def get_mp3_files(directory):
     return [os.path.join(directory, i)

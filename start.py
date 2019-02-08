@@ -2,6 +2,7 @@ from change import *
 from common import *
 from audible import *
 from pull import *
+from images import *
 
 
 def remove_copyright(text):
@@ -26,14 +27,6 @@ def remove_all_copyright_symbols(dirs):
             if changed:
                 tags.save()
                 print(f"- Updated {directory}")
-
-# def merge(old, new):
-#     for root, dirs, files in os.walk(old, followlinks=True):
-#         for name in files:
-#             oldpathandname = os.path.join(root, name)
-#             relpath = os.path.relpath(oldpathandname, start=old)
-#             newpathandname = os.path.join(new,relpath)
-#             os.renames(oldpathandname, newpathandname)
 
 def check_if_books_exists(olddir=MAIN, newdir=NEW):
     books = makelist(newdir)

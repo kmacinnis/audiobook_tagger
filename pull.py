@@ -1,4 +1,4 @@
-from common import copy, fail, succeed, PHONE_BACKUPS, NEW
+from common import copy, fail, succeed, PHONE_BACKUPS, NEW, get_parent_folders
 import os
 import mutagen
 
@@ -79,6 +79,9 @@ def get_and_tag(path, destination, organize=True, get=copy, dryrun=False):
                                             info['title'], info['filename'] )
     else:
         newpathandname = os.path.join(destination, info['filename'])
+    if os.path.exists(newpathandname):
+        fail(5)
+        return
     if not dryrun:
         get(path, newpathandname)
     succeed()
@@ -108,6 +111,7 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
                 mp3files.append(newpath)
                 print(newpath)
     return mp3files
+
 
 
 

@@ -18,6 +18,7 @@ MIME_EXT = {
     'video/3gpp': '.3gp',
     'video/mp4': '.mp4',
     'video/quicktime': '.mov',
+    "application/epub+zip" : '.epub',
 }
 
 
@@ -31,6 +32,12 @@ VIDEO_TYPES = [
     'video/3gpp',
     'video/mp4',
     'video/quicktime',
+]
+
+EBOOK_TYPES = [
+    'application/epub+zip',
+    'application/zip',
+    ''
 ]
 
 PHONE_BACKUPS = os.path.expanduser(
