@@ -3,10 +3,10 @@ import magic
 import errno
 import shutil
 import mutagen
-# from mutagen.easyid3 import EasyID3 as ezid3
+from collections import defaultdict
 
 from tagger import tagfile
-from common import copy
+from common import copy, PHONE_BACKUPS, NEW
 
 MIME_EXT = {
     'application/octet-stream': '.mp3',
@@ -19,8 +19,42 @@ MIME_EXT = {
     'video/mp4': '.mp4',
     'video/quicktime': '.mov',
     "application/epub+zip" : '.epub',
+    'text/xml' : '.xml',
+    'text/vcard': '.vcard',
+     'text/x-python': '.py',
+     'text/html': '.html',
+     'text/x-asm': '.asm',
+     'text/plain': '.txt',
+     'image/png': '.png',
+     'image/x-ms-bmp': '.bmp',
+     'image/x-tga': '.tga',
+     'image/jpeg': '.jpeg',
+     'image/tiff': '.tiff',
+     'image/gif': '.gif',
+     'image/x-icon': '.ico',
+     'video/quicktime': '.mov',
+     'video/3gpp': '.3gp',
+     'video/mp4': '.mp4',
+     'inode/x-empty': '',
+     'application/x-tplink-bin': '.bin',
+     'application/vnd.ms-opentype': '.otf',
+     'application/x-wine-extension-ini': '.ini',
+     'application/octet-stream': '.a',
+     'application/json': '.json',
+     'application/x-dosexec': '.exec',
+     'application/epub+zip': '.epub',
+     'application/vnd.lotus-1-2-3': '.123',
+     'application/x-gzip': '.gzip',
+     'application/zip': '.zip',
+     'application/x-sqlite3': '.db',
+     'application/pdf': '.pdf',
+     'audio/x-mp4a-latm': '.m4a',
+     'audio/x-wav': '.wav',
+     'audio/amr': '.amr',
+     'audio/x-m4a': '.m4a',
+     'audio/mpeg': '.mp3'
 }
-
+MIME_EXT = defaultdict(lambda: "", MIME_EXT) 
 
 DESIRED_TYPES = [
     # These are the only ones that I've found audiobooks in
@@ -40,19 +74,7 @@ EBOOK_TYPES = [
     ''
 ]
 
-PHONE_BACKUPS = os.path.expanduser(
-    '~/Library/Application Support/MobileSync/Backup')
-# DESTINATION = os.path.expanduser(
-#     '~/Desktop/Copied from phone')
-DESTINATION = '/Volumes/media/temp-audiobooks/'
-NEW = '/Volumes/media/temp-audiobooks/new/'
-
-
-# This is something I use as a scratch folder.
-rubble = '/Users/kate/Desktop/rubble/'
-
-
-
+MIME_DEST = '/Volumes/media/temp-audiobooks/by_mime/'
 
 
 def list_mimetypes(startdir=PHONE_BACKUPS):
@@ -66,25 +88,23 @@ def list_mimetypes(startdir=PHONE_BACKUPS):
                 mimetypes.append(mimetype)
     return mimetypes
 
-
-def sort_files_by_mimetype(startdir, destination=DESTINATION, copy=True):
+def pull_by_mimetype(startdir=PHONE_BACKUPS, destination=MIME_DEST, 
+                                                move_without_copying=False):
     """Organize files in directory tree by mimetype"""
-    if copy:
-        do = copy
-    else:
+    if move_without_copying:
         do = os.renames
+    else:
+        do = copy
     for root, dirs, files in os.walk(startdir, followlinks=True):
         for name in files:
             filepathandname = os.path.join(root, name)
             mimetype = magic.from_file(filepathandname, mime=True)
             newpathandname = os.path.join(destination, mimetype, name)
+            ext = MIME_EXT[mimetype]
             do(filepathandname, newpathandname)
 
-
-
-
-def copy_desired_files(startdir=PHONE_BACKUPS, destination=DESTINATION,
-                      desired_types=DESIRED_TYPES, move_without_copying=True):
+def copy_desired_files(startdir=PHONE_BACKUPS, destination=MIME_EXT,
+                      desired_types=DESIRED_TYPES, move_without_copying=False):
     if move_without_copying:
         do = os.renames
     else:
@@ -103,137 +123,30 @@ def copy_desired_files(startdir=PHONE_BACKUPS, destination=DESTINATION,
                 newpathandname = os.path.join(destination, mimetype, newname)
                 do(filepathandname, newpathandname)
 
-
-
-
 def add_mp3_extension(maindir):
     for root, dirs, files in os.walk(maindir):
         for name in files:
             filepathandname = os.path.join(root, name)
             if os.path.splitext(name)[1] == '':
                 os.rename(filepathandname, filepathandname + '.mp3')
-    
-    
-    
-    
-#
-# def check_unknown_files(startdir=PHONE_BACKUPS, destination=DESTINATION, copy=True):
-#     if copy:
-#         do = copy
-#     else:
-#         do = os.renames
-#     for root, dirs, files in os.walk(startdir, followlinks=True):
-#         for name in files:
-#             filepathandname = os.path.join(root, name)
-#             mimetype = magic.from_file(filepathandname, mime=True)
-#             if mimetype == 'application/octet-stream':
-#                 try:
-#                     newname = ezid3(filepathandname)['title'][0] + '.mp3'
-#                     newpathandname = os.path.join(destination, mimetype, newname)
-#                     do(filepathandname, newpathandname)
-#                 except mutagen.id3.ID3NoHeaderError:
-#                     pass
 
-def tagfile(path):
-    origpath, filename = os.path.split(path)  
-    tags = mutagen.File(path, easy=True)
-    try:
-        title, track = tags['title'][0].split(' - Part ')
-    except ValueError:
+def add_extensions(maindir=MIME_DEST):
+    for root, dirs, files in os.walk(maindir):
+        relpath = os.path.relpath(root, start=maindir)
+        mimetype = relpath.strip('/')
+        print(repr(mimetype))
         try:
-            title = tags['album'][0]
-            track = tags['tracknumber'][0]
-        except KeyError:
-            return   # can't figure out title & track from filename or tags
-    if 'artist' in tags.keys():
-        artist_tag = tags['artist']
-        creators = artist_tag[0].split('/')
-        author = creators[0]
-        narrator = ', '.join(creators[1:])
-    
-        tags['artist'] = author
-        tags['composer'] = narrator
-    else:
-        author = 'Unknown Author'
-
-    if 'tracknumber' not in tags.keys():
-        tags['tracknumber'] = track.lstrip('0')
-    if 'album' not in tags.keys():
-        tags['album'] = title
-    tags.save()
-    
-    newpath = os.path.join(origpath, author, title, filename)
-    os.renames(path, newpath)
-
-
-
-
-
-def get_overdrive_files(startdir=PHONE_BACKUPS, destination=DESTINATION,
-                  sorted=True, copy=True, dryrun=False):
-    """I don't know"""
-    mp3files = []
-    if copy:
-        do = copy
-    else:
-        do = os.renames
-    for root, dirs, files in os.walk(startdir, followlinks=True):
+            ext = MIME_EXT[mimetype]
+            print(ext)
+        except:
+            continue
         for name in files:
-            icon = '.'
             filepathandname = os.path.join(root, name)
-            tags = mutagen.File(filepathandname, easy=True)
-            if tags:
-                if 'genre' in tags.keys():                
-                    if tags['genre'] in (['Ringtone'],['Other']):
-                        break
-                try:
-                    try:
-                        newname = tags['title'][0]    
-                        title, track = newname.split(' - Part ')
-                    except ValueError:
-                        try:
-                            title = tags['album'][0]
-                            track = tags['tracknumber'][0]
-                        except KeyError:
-                            # this means it will only work with Overdrive 
-                            break                
-                    if 'artist' in tags.keys():
-                        artist_tag = tags['artist']
-                        creators = artist_tag[0].split('/')
-                        author = creators[0]
-                        narrator = ', '.join(creators[1:])
-    
-                        tags['artist'] = author
-                        tags['composer'] = narrator
-                    else:
-                        author = 'Unknown Author'
-
-                    if 'tracknumber' not in tags.keys():
-                        tags['tracknumber'] = track.lstrip('0')
-                    if 'album' not in tags.keys():
-                        tags['album'] = title
-                    tags.save()
-                    if sorted:
-                        newpathandname = os.path.join(destination, author, title, newname + '.mp3')
-                    else:
-                        newpathandname = os.path.join(destination, newname)
-
-                    mp3files.append(newname)
-                    if dryrun:
-                        break
-                    icon = '-'
-                    if not os.path.exists(newpathandname) and newname != '.':
-                        do(filepathandname, newpathandname)
-                        tagfile(newpathandname)
-                        icon = '*'
-                except KeyError:
-                    pass
-            print(icon, end='')
-        mp3files.sort()
-    return mp3files
+            if os.path.splitext(name)[1] == '':
+                os.rename(filepathandname, filepathandname + ext)
 
 
-def get_ringtones(startdir=NEW, destination=DESTINATION, copy=False, dryrun=False):
+def get_ringtones(startdir=NEW, destination=MIME_DEST, copy=False, dryrun=False):
     mp3files = []
     if copy:
         do = copy
