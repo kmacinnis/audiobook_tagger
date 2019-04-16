@@ -2,17 +2,18 @@ import os
 import shutil
 import errno
 import mutagen
+from pathlib import Path
 
 
-MAIN = "/Volumes/media/audiobooks/"
+MAIN = '/Volumes/media/MediaSections/AudioSections/audiobooks/'
 TEMP = '/Volumes/media/temp-audiobooks/'
 NEW = '/Volumes/media/temp-audiobooks/new/'
 HOLDING = "/Volumes/media/temp-audiobooks/holding-pen/"
 FROM_CD = "/Volumes/media/temp-audiobooks/From CD/"
 PHONE_BACKUPS = os.path.expanduser(
     '~/Library/Application Support/MobileSync/Backup')
-KIDS = "/Volumes/media/sorted_audiobooks/kids_audiobooks"
-KIDS_CHAPTERBOOKS = "/Volumes/media/sorted_audiobooks/kids_chapter_audiobooks/"
+KIDS = "/Volumes/media/MediaSections/AudioSections/kids_audiobooks"
+KIDS_CHAPTERBOOKS = '/Volumes/media/MediaSections/AudioSections/kids_chapter_audiobooks/'
 
 
 fail_codes = "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
@@ -96,44 +97,12 @@ def preview_tags(dirs):
     for directory in dirs: 
         display_tags(get_mp3_files(directory)[0])
 
-def mkdir_p(path):
-    '''Makes directories, ignoring errors if it already exists'''
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST:
-            pass
-        else:
-            raise
-
 def copy(old, new):
     '''Copies a file from old to new, creating directories where necessary '''
     newpath = os.path.split(new)[0]
-    mkdir_p(newpath)
+    os.makedirs(newpath, exist_ok=True)
     shutil.copy(old, new)
 
-def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
-    print(f"Merging files from {from_dir} to {to_dir}")
-    for root, dirs, files in os.walk(from_dir, followlinks=True):
-        for name in files:
-            oldpathandname = os.path.join(root, name)
-            relpath = os.path.relpath(oldpathandname, start=from_dir)
-            newpathandname = os.path.join(to_dir,relpath)
-            if overwrite or not os.path.exists(newpathandname):
-                os.renames(oldpathandname, newpathandname)
-                print(f" - {relpath}")
-
-def organize_by_tag(root):
-    for name in os.listdir(root):
-        oldpathandname = os.path.join(root, name)
-        try:
-            tags = mutagen.File(oldpathandname, easy=True)
-            authortag = tags['artist'][0]
-            booktitletag = tags['album'][0].split(':')[0]
-            newpathandname = os.path.join(root, authortag, booktitletag, name )
-            os.renames(oldpathandname, newpathandname)
-        except:
-            pass
 
 def makelist(startdir, limit=None):
     '''Makes a list of directories that only contain files (no directories)'''
@@ -145,16 +114,13 @@ def makelist(startdir, limit=None):
         return dirlist[:limit]
     return dirlist
 
-def get_parent_folders(filelist):
-    parent_folders = set()
-    for f in filelist:
-        parent_folders.add(os.path.dirname(f))
-
-def get_dirs(startdir):
-    if isinstance(startdir, str):
-        dirs = makelist(startdir)
+def get_dirs(dirs):
+    try:
+        main_dir = Path(dirs)
+    except TypeError:
+        pass
     else:
-        dirs = startdir
+        dirs = makelist(main_dir)
     return dirs
 
 def get_mp3_files(directory):
@@ -167,3 +133,16 @@ def get_single_mp3(directory):
         return None
     return allmp3s[0]
 
+def flatten(source_dir, new_dir=None, overwrite=False):
+    if new_dir is None:
+        new_dir = source_dir
+    print(f"Move files nested in {source_dir} to be flatly in {new_dir}")
+    for root, dirs, files in os.walk(source_dir, followlinks=False):
+        for name in files:
+            if name == ".DS_Store":
+                continue
+            oldpathandname = os.path.join(root, name)
+            newpathandname = os.path.join(new_dir, name)
+            if overwrite or not os.path.exists(newpathandname):
+                print(f" - {name}")
+                os.renames(oldpathandname, newpathandname)

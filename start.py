@@ -3,6 +3,7 @@ from common import *
 from audible import *
 from pull import *
 from images import *
+from organize import *
 
 
 def remove_copyright(text):
@@ -10,6 +11,8 @@ def remove_copyright(text):
         text = text.split('&#169;')[0].rstrip(" ,/")
     if '©' in text:
         text = text.split('©')[0].rstrip(" ,/")
+    if '(c)' in text:
+        text = text.split('(c)')[0].rstrip(" ,/")
     return text
 
 def remove_all_copyright_symbols(dirs):

@@ -1,4 +1,7 @@
-from common import copy, fail, succeed, PHONE_BACKUPS, NEW, get_parent_folders
+from common import ( copy, fail, succeed, 
+                     PHONE_BACKUPS, NEW, KIDS_CHAPTERBOOKS, KIDS, MAIN )
+from organize import get_parent_folders
+from database import add_info_to_database, item_exists
 import os
 import mutagen
 
@@ -68,20 +71,34 @@ def set_tags(path):
         }
 
 
-def get_and_tag(path, destination, organize=True, get=copy, dryrun=False):
+def get_and_tag(path, destination, organize=True, get=copy, 
+        dryrun=False, check_exists=True):
     origpath, filename = os.path.split(path)
 
     info = set_tags(path)
     if info is None:
         return
+    info['oldfile'] = filename
+    add_info_to_database(info)
     if organize:
         newpathandname = os.path.join(destination, info['author'], 
+                                            info['title'], info['filename'] )
+        mainpathandname = os.path.join(MAIN, info['author'], 
+                                            info['title'], info['filename'] )
+        kid1pathandname = os.path.join(KIDS_CHAPTERBOOKS, info['author'], 
+                                            info['title'], info['filename'] )
+        kid2pathandname = os.path.join(KIDS, info['author'], 
                                             info['title'], info['filename'] )
     else:
         newpathandname = os.path.join(destination, info['filename'])
     if os.path.exists(newpathandname):
         fail(5)
         return
+    if check_exists:
+        if item_exists(info):
+            fail(6)            
+            print(f"   file not copied:  {info['filename']}")
+            return
     if not dryrun:
         get(path, newpathandname)
     succeed()

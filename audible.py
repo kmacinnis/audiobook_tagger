@@ -1,6 +1,6 @@
 import os
 from mutagen.id3 import ID3, TIT2, COMM, TALB, TCOM, TPE1
-from common import organize_by_tag
+from organize import organize_by_tag
 import re
 
 
