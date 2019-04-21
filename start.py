@@ -46,3 +46,15 @@ def check_if_books_exists(olddir=MAIN, newdir=NEW):
             print("  - new")
     return {'books': books, 'duplicates': duplicates}
 
+def remove_after_parens(dirs):
+    for directory in dirs:
+        allmp3s = get_mp3_files(directory)
+        for mp3file in allmp3s:
+            tags = mutagen.File(mp3file, easy=True)
+            changed = False
+            title = tags['album'][0]
+            if '(' in title:
+                tags['album'] = title.split('(')[0]
+                tags.save()
+        print(f"- Updated {directory}")
+

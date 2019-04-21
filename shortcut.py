@@ -1,4 +1,4 @@
-from change import update_tags
+from change import update_tags, update_descriptions
 from pull import pull_mp3_files
 from images import stretch_all_covers
 from common import makelist, NEW, PHONE_BACKUPS

@@ -1,8 +1,11 @@
 from common import ( copy, fail, succeed, 
                      PHONE_BACKUPS, NEW, KIDS_CHAPTERBOOKS, KIDS, MAIN )
 from organize import get_parent_folders
-from database import add_info_to_database, item_exists
+from database import ( add_info_to_database, add_info_to_db_cursor, 
+                        item_exists, author_exists, DATABASEFILE )
 import os
+from pathlib import Path
+import sqlite3
 import mutagen
 
 
@@ -72,33 +75,35 @@ def set_tags(path):
 
 
 def get_and_tag(path, destination, organize=True, get=copy, 
-        dryrun=False, check_exists=True):
-    origpath, filename = os.path.split(path)
+        dryrun=False, check_exists=True, cursor=None):
 
+    origpath, filename = os.path.split(path)
     info = set_tags(path)
     if info is None:
         return
     info['oldfile'] = filename
-    add_info_to_database(info)
+    destination = Path(destination)
     if organize:
-        newpathandname = os.path.join(destination, info['author'], 
-                                            info['title'], info['filename'] )
-        mainpathandname = os.path.join(MAIN, info['author'], 
-                                            info['title'], info['filename'] )
-        kid1pathandname = os.path.join(KIDS_CHAPTERBOOKS, info['author'], 
-                                            info['title'], info['filename'] )
-        kid2pathandname = os.path.join(KIDS, info['author'], 
-                                            info['title'], info['filename'] )
+        newpathandname = destination / info['author'] / info['title'] / info['filename']
+        authorpath = destination /  info['author']
     else:
-        newpathandname = os.path.join(destination, info['filename'])
+        newpathandname = destination / info['filename']
     if os.path.exists(newpathandname):
         fail(5)
         return
     if check_exists:
-        if item_exists(info):
+        if item_exists(info, cursor=cursor):
             fail(6)            
             print(f"   file not copied:  {info['filename']}")
             return
+        if not author_exists(info, cursor=cursor):
+            needs_photo = authorpath / 'needs photo'
+            needs_photo.parent.mkdir()
+            needs_photo.touch()
+    if cursor is None:
+        add_info_to_database(info)
+    else:
+        add_info_to_db_cursor(info, cursor)
     if not dryrun:
         get(path, newpathandname)
     succeed()
@@ -106,14 +111,19 @@ def get_and_tag(path, destination, organize=True, get=copy,
 
 
 def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
-              organize=True, move_without_copying=False, dryrun=False):
+              organize=True, move_without_copying=False, dryrun=False,
+              check_exists=True):
 
     line = f"Pulling mp3 files from {startdir}:"
     print(f"{line}\n{'‾'*len(line)}")
+    connection = sqlite3.dbapi2.connect(DATABASEFILE)
+    cursor = connection.cursor() 
     kwargs = {
         'destination' : destination,
         'dryrun' : dryrun,
         'organize' : organize,
+        'check_exists' :check_exists,
+        'cursor' : cursor,
     }
     mp3files = []
     if move_without_copying:
@@ -127,6 +137,8 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
             if newpath:
                 mp3files.append(newpath)
                 print(newpath)
+    cursor.close()
+    connection.close()
     return mp3files
 
 

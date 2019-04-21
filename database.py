@@ -26,10 +26,10 @@ def add_info_to_database(info):
     connection = sqlite3.dbapi2.connect(DATABASEFILE)
     cursor = connection.cursor() 
     insertinto = 'INSERT INTO audiobookfiles (author, title, oldfilename, newfilename) '
-    author = info['author']#.replace("'","’") 
-    title = info['title']#.replace("'","’") 
+    author = info['author']
+    title = info['title']
     old = info['oldfile']
-    new = info['filename']#.replace("'","’")
+    new = info['filename']  
     insertvalues = f"VALUES ('{author}', '{title}', '{old}', '{new}')"  
     values = (author, title, old, new)
     try:
@@ -41,13 +41,33 @@ def add_info_to_database(info):
     cursor.close()
     connection.close()
 
-def item_exists(info):
-    connection = sqlite3.dbapi2.connect(DATABASEFILE)
-    cursor = connection.cursor() 
-    author = info['author']#.replace("'","’") 
-    title = info['title']#.replace("'","’") 
+def add_info_to_db_cursor(info, cursor):
+    insertinto = 'INSERT INTO audiobookfiles (author, title, oldfilename, newfilename) '
+    author = info['author']
+    title = info['title']
     old = info['oldfile']
-    new = info['filename']#.replace("'","’")
+    new = info['filename']  
+    insertvalues = f"VALUES ('{author}', '{title}', '{old}', '{new}')"  
+    values = (author, title, old, new)
+    try:
+        cursor.execute('INSERT INTO audiobookfiles (author, title, oldfilename, newfilename) VALUES (?,?,?,?)', values)
+        cursor.connection.commit()
+    except sqlite3.OperationalError as e:
+        print(e)
+        print(insertinto + insertvalues)
+
+
+def item_exists(info, cursor=None):
+    if cursor is None:
+        connection = sqlite3.dbapi2.connect(DATABASEFILE)
+        cursor = connection.cursor()
+        needs_closing = True
+    else:
+        needs_closing = False
+    author = info['author']
+    title = info['title']
+    old = info['oldfile']
+    new = info['filename']  
     values = (author, title, old, new)
     try:
         cursor.execute('SELECT COUNT(*) FROM audiobookfiles WHERE newfilename = ? AND author = ?', (new, author))
@@ -55,9 +75,30 @@ def item_exists(info):
     except sqlite3.OperationalError as e:
         print(e)
         print(info)
-    connection.commit()
-    cursor.close()
-    connection.close()
+    if needs_closing:
+        connection.commit()
+        cursor.close()
+        connection.close()
+    return (results > 0)
+
+def author_exists(info, cursor=None):
+    if cursor is None:
+        connection = sqlite3.dbapi2.connect(DATABASEFILE)
+        cursor = connection.cursor()
+        needs_closing = True
+    else:
+        needs_closing = False
+    author = info['author']
+    try:
+        cursor.execute('SELECT COUNT(*) FROM audiobookfiles WHERE author = ?', (author,))
+        results = cursor.fetchone()[0]
+    except sqlite3.OperationalError as e:
+        print(e)
+        print(info)
+    if needs_closing:
+        connection.commit()
+        cursor.close()
+        connection.close()
     return (results > 0)
 
 
@@ -81,10 +122,10 @@ def fill_database(directories):
             print(book)
             for mp3file in get_mp3_files(book):
                 info = file_info(mp3file)
-                author = info['author'].replace("'","’") 
-                title = info['title'].replace("'","’") 
+                author = info['author']
+                title = info['title']
                 old = info['oldfile']
-                new = info['filename'].replace("'","’")
+                new = info['filename']
                 values = (author, title, old, new)
                 try:
                     cursor.execute('INSERT INTO audiobookfiles (author, title, oldfilename, newfilename) VALUES (?,?,?,?)', values)
