@@ -2,7 +2,7 @@ import os
 import mutagen
 from common import *
 
-DONE = '/Volumes/media/temp-audiobooks/done/'
+DONE = '/Volumes/mangomedia/temp-audiobooks/done/'
 
 
 

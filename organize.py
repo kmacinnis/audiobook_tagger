@@ -88,3 +88,38 @@ def move_to_final_destination(dirs=None, booklist=None):
         shutil.move(book, new_dir)
         print(f"* {title} moved to {final_dir}")
     
+def pull_contents_from_folder(directory, prefix_with_folder=False):
+    print("«Pulling all files into parent folder»")
+    if prefix_with_folder:
+        for root, dirs, files in os.walk(directory):
+            for name in files:
+                filepathandname = Path(root) / name
+                newpathandname = Path(root + ' -- ' + name)
+                os.renames(filepathandname, newpathandname)
+                try:
+                    os.rmdir(root)
+                except:
+                    pass
+    else:
+        for root, dirs, files in os.walk(directory):
+            for name in files:
+                print(name)
+                filepathandname = Path(root) / name
+                newpathandname = Path(root).parent / name
+                os.renames(filepathandname, newpathandname)
+                print("*", newpathandname)
+
+
+def delete_unwanted_files(directory):
+    trashextensionlist = [  '.rar' , '.srr' , '.sfv' , '.nzb' , '.tbn' ,
+                            '.nfo' , '.jpg' , '.gif' , '.png' , '.md5' , 
+                            '.txt' , '.url' , '.par2' , '.par', '.srs'
+                            '.0', '.1' , '.2' , '.3' , '.4' , '.5' , '.6' , '.7' , '.8' , '.9' ]
+    
+    for root, dirs, files in os.walk(directory):
+        for name in files:
+            filepathandname = Path(root) / name
+            if filepathandname.suffix in trashextensionlist:
+                os.remove(filepathandname)
+
+

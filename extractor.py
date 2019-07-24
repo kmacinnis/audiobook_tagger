@@ -74,7 +74,7 @@ EBOOK_TYPES = [
     ''
 ]
 
-MIME_DEST = '/Volumes/media/temp-audiobooks/by_mime/'
+MIME_DEST = '/Volumes/mangomedia/temp-audiobooks/by_mime/'
 
 
 def list_mimetypes(startdir=PHONE_BACKUPS):

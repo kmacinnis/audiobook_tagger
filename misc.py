@@ -1,5 +1,6 @@
 from change import *
 from common import *
+from covers import *
 from audible import *
 from pull import *
 from images import *
@@ -58,3 +59,9 @@ def remove_after_parens(dirs):
                 tags.save()
         print(f"- Updated {directory}")
 
+def set_initial_tags(dirs):
+    for bookdir in dirs:
+        mp3files = [os.path.join(bookdir, i) 
+                    for i in os.listdir(bookdir) if i[-4:]=='.mp3']
+        for mp3file in mp3files:
+            set_tags(os.path.join(bookdir,mp3file))

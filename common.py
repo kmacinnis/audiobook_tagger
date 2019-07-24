@@ -5,15 +5,16 @@ import mutagen
 from pathlib import Path
 
 
-MAIN = '/Volumes/media/MediaSections/AudioSections/audiobooks/'
-TEMP = '/Volumes/media/temp-audiobooks/'
-NEW = '/Volumes/media/temp-audiobooks/new/'
-HOLDING = "/Volumes/media/temp-audiobooks/holding-pen/"
-FROM_CD = "/Volumes/media/temp-audiobooks/From CD/"
+MAIN = '/Volumes/mangomedia/MediaSections/AudioSections/audiobooks/'
+TEMP = '/Volumes/mangomedia/temp-audiobooks/'
+NEW = '/Volumes/mangomedia/temp-audiobooks/new/'
+HOLDING = "/Volumes/mangomedia/temp-audiobooks/holding-pen/"
+FROM_CD = "/Volumes/mangomedia/temp-audiobooks/From CD/"
 PHONE_BACKUPS = os.path.expanduser(
     '~/Library/Application Support/MobileSync/Backup')
-KIDS = "/Volumes/media/MediaSections/AudioSections/kids_audiobooks"
-KIDS_CHAPTERBOOKS = '/Volumes/media/MediaSections/AudioSections/kids_chapter_audiobooks/'
+DESKTOP = Path('~/Desktop/').expanduser()
+KIDS = "/Volumes/mangomedia/MediaSections/AudioSections/kids_audiobooks"
+KIDS_CHAPTERBOOKS = '/Volumes/mangomedia/MediaSections/AudioSections/kids_chapter_audiobooks/'
 
 
 fail_codes = "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
@@ -146,3 +147,22 @@ def flatten(source_dir, new_dir=None, overwrite=False):
             if overwrite or not os.path.exists(newpathandname):
                 print(f" - {name}")
                 os.renames(oldpathandname, newpathandname)
+
+def unique_path(filepath):
+    counter = 0
+    if not filepath.is_absolute():
+        raise TypeError('filepath must be absolute path.')
+    path = filepath
+    origext = filepath.suffix
+    origname = filepath.name.rstrip(origext)
+    name_pattern = '{origname} ({counter}){origext}'
+    while True:
+        if not path.exists():
+            return path
+        counter += 1
+        formatter = {'origname':origname, 'counter':counter, 'origext':origext}
+        name = name_pattern.format(**formatter)
+        path = filepath.with_name(name)
+
+        
+        

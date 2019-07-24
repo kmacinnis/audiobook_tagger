@@ -97,7 +97,7 @@ def get_and_tag(path, destination, organize=True, get=copy,
             print(f"   file not copied:  {info['filename']}")
             return
         if not author_exists(info, cursor=cursor):
-            needs_photo = authorpath / 'needs photo'
+            needs_photo = authorpath / '_ needs photo'
             needs_photo.parent.mkdir()
             needs_photo.touch()
     if cursor is None:
