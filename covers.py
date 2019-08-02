@@ -6,6 +6,7 @@ from pathlib import Path
 from common import DESKTOP, unique_path, get_dirs, get_mp3_files
 
 AUDIOBOOKSTORE_SEARCH_URI = "https://audiobookstore.com/search.aspx?Keyword=%s"
+AUDIBLE_SEARCH_URI = "https://www.audible.com/search?keywords=%s"                                           
 
 
 def get_audiobookstore_cover_image(author, title, directory=None):
@@ -23,7 +24,7 @@ def get_audiobookstore_cover_image(author, title, directory=None):
         save_location = unique_path(save_location.with_suffix(ext))
         urllib.request.urlretrieve(cover_uri, filename=save_location) 
     except Exception as err:
-        print(f"Unable to download cover for {author} - {title}.")
+        print(f"Unable to download cover at audiobookstore for {author} - {title}.")
         print(err)
         print()
         return False
@@ -48,7 +49,7 @@ def update_covers(dirs, dryrun=False):
         if get_audiobookstore_cover_image(authortag, booktitletag, directory):
             successes.append(directory)
         else:
-            failures.append(directory)
+            failures.append(' '.join((authortag, booktitletag)))
     return {'failures' : failures, 'successes' : successes}
     
         

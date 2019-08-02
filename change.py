@@ -51,7 +51,7 @@ def match(gc, tags, match_style = MatchStyle.SEMIAUTO):
         print("   Trouble getting results from goodreads.")
         return
     score_chart = []
-    for i, result in enumerate(results[:5]):
+    for i, result in enumerate(results[:15]):
         author_score = distance(authortag, str(result.authors[0]))
         title_score = distance(clean(booktitletag), clean(result.title))
         score = author_score + title_score
@@ -77,38 +77,46 @@ def match(gc, tags, match_style = MatchStyle.SEMIAUTO):
     return result
 
 
-def update_tags(dirs, match_style=MatchStyle.SEMIAUTO, dryrun=False):
+def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
     '''Updates date tag with original publication date from goodreads,
     updates track number to contain totaltracks,
     
-    Optional arg `auto` will skip books that don't match under SCORE_THRESHOLD
+    If book is not passed in, will match the author and title via goodreads search.
     '''
-    dirs = get_dirs(dirs)   
+    try:
+        items[0]['book']
+    except:
+        items = [ {'directory' : d, 'book' : None} for d in get_dirs(items)]
+    
+    
     gc = goodreads_client
     failures = []
     successes = []
-    for index, directory in enumerate(dirs):
+    for index, item in enumerate(items):
+        directory = item['directory']
+        book = item['book']
         print(f'<{index}> {directory}')
         mp3files = get_mp3_files(directory)
         if mp3files == []:
             continue
         tags = mutagen.File(mp3files[0], easy=True)
-        result = match(gc, tags)
-        if result is None:
-            print("************* Problem matching book.")
-            print("************* No results from goodreads")
-            print()
-            failures.append(directory)
-            continue
-        elif result['score'] > SCORE_THRESHOLD:
-            print("************* Problem matching book.")
-            print(f"************* Best match is {result} ")
-            print()
-            failures.append(directory)
-            continue
-        else:
-            book = result['result']
-            print(f'   Matched to {book}' )
+        if book is None:
+            result = match(gc, tags)
+            if result is None:
+                print("************* Problem matching book.")
+                print("************* No results from goodreads")
+                print()
+                failures.append(directory)
+                continue
+            elif result['score'] > SCORE_THRESHOLD:
+                print("************* Problem matching book.")
+                print(f"************* Best match is {result} ")
+                print()
+                failures.append(directory)
+                continue
+            else:
+                book = result['result']
+        print(f'   Matched to {book}' )
         totaltracks = len(mp3files)
         try:
             year = book.work['original_publication_year']['#text']
@@ -184,7 +192,7 @@ def update_tags(dirs, match_style=MatchStyle.SEMIAUTO, dryrun=False):
                 print(f"     • Changed genre from {orig_genres} to {genres}")
             if not dryrun:
                 tags.save()
-            successes.append({'directory' : directory, 'book' : book})
+        successes.append({'directory' : directory, 'book' : book})
         print()
     return {'failures' : failures, 'successes' : successes}
 
@@ -339,48 +347,56 @@ def update_individual_book(directory, book_id, dryrun=False):
         if not dryrun:
             tags.save()
 
-def update_descriptions(start, match_style=MatchStyle.SEMIAUTO, dryrun=False):
+def update_descriptions(items, match_style=MatchStyle.SEMIAUTO, book=None, dryrun=False):
     '''Updates comments tag with book description from goodreads,
     '''
-    dirs = get_dirs(start)
+    try:
+        items[0]['book']
+    except:
+        items = [ {'directory' : d, 'book' : None} for d in get_dirs(items)]
     gc = goodreads_client
     failures = []
-    for index, directory in enumerate(dirs):
+    successes = []
+    for index, item in enumerate(items):
+        directory = item['directory']
+        book = item['book']
         print(f'<{index}> {directory}')
-        mp3files = [os.path.join(directory, i) 
+        mp3files = [os.path.join(directory, i)
                     for i in os.listdir(directory) if i[-4:]=='.mp3']
         if mp3files == []:
             continue
         tags = mutagen.File(mp3files[0], easy=True)
-        result = match(gc, tags)
-        if result is None:
-            print("************* Problem matching book.")
-            print("************* No results from goodreads")
-            print()
-            failures.append(directory)
-            continue
-        elif result['score'] > SCORE_THRESHOLD:
-            print("************* Problem matching book.")
-            print(f"************* Best match is {result} ")
-            print()
-            failures.append(directory)
-            continue
-        else:
-            book = result['result']
-            print(f'   Matched to {book}' )
-            text = book.description
-            print(f'   {text}')
-            if not text:
+        if book is None:
+            result = match(gc, tags)
+            if result is None:
+                print("************* Problem matching book.")
+                print("************* No results from goodreads")
+                print()
+                failures.append(directory)
                 continue
-            for mp3file in mp3files:
-                tags = ID3(mp3file)
-                print(f"   - {tags['TIT2'].text[0]}")
-                
-                tags.delall("COMM")
-                tags["COMM::eng"] = COMM(
-                    encoding=Encoding.UTF8,
-                    lang='eng',
-                    text=text,
-                )
-                tags.save()
+            elif result['score'] > SCORE_THRESHOLD:
+                print("************* Problem matching book.")
+                print(f"************* Best match is {result} ")
+                print()
+                failures.append(directory)
+                continue
+            else:
+                book = result['result']
+        print(f'   Matched to {book}' )
+        text = book.description
+        print(f'   {text}')
+        if not text:
+            continue
+        for mp3file in mp3files:
+            tags = ID3(mp3file)
+            print(f"   - {tags['TIT2'].text[0]}")
+            
+            tags.delall("COMM")
+            tags["COMM::eng"] = COMM(
+                encoding=Encoding.UTF8,
+                lang='eng',
+                text=text,
+            )
+            tags.save()
+
 

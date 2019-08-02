@@ -9,6 +9,8 @@ import sqlite3
 import mutagen
 
 
+SLASH_SUBSTITUTE = '-'
+
 
 def set_tags(path):
     
@@ -36,6 +38,7 @@ def set_tags(path):
             return
     try:
         title, track = tags['title'][0].split(' - Part ')
+        title = title.replace('/',SLASH_SUBSTITUTE)
     except ValueError:
         try:
             title = tags['album'][0]
@@ -68,7 +71,7 @@ def set_tags(path):
         tags['version'] = series
     tags.save()
     return {
-        'filename' : tags['title'][0] + '.mp3',
+        'filename' : tags['title'][0].replace('/',SLASH_SUBSTITUTE) + '.mp3',
         'title' : title,
         'author' : author,
         }
