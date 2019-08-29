@@ -13,12 +13,12 @@ from audiobooks import Audiobook
 
 TABLE_COLUMNS = [
     'filename',
-    'filetype', 
+    'filetype',
     'author',
     'title',
     'narrator',
     'date',
-    'path', 
+    'path',
     
 ]
 
@@ -39,13 +39,12 @@ class Row:
         self.filename = path.name
         self.filetype = path.suffix.lstrip('.')
         tags = mutagen.File(path, easy=True)
-        tags = defaultdict(lambda: [], tags)
-        self.author = tags['artist']
-        self.title = tags['title']
-        self.narrator = tags['composer']
-        self.series_info = tags['version']
-        self.date = tags['date']
-
+        tags = defaultdict(lambda: ['woo'], tags)
+        self.author = tags['artist'][0]
+        self.title = tags['title'][0]
+        self.narrator = tags['composer'][0]
+        self.series_info = tags['version'][0]
+        self.date = tags['date'][0]
 
 class TableSource(Source):
     def __init__(self, directory):
