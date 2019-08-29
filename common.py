@@ -16,6 +16,8 @@ DESKTOP = Path('~/Desktop/').expanduser()
 KIDS = "/Volumes/mangomedia/MediaSections/AudioSections/kids_audiobooks"
 KIDS_CHAPTERBOOKS = '/Volumes/mangomedia/MediaSections/AudioSections/kids_chapter_audiobooks/'
 
+AUDIOFILE_EXTENSIONS = ('.mp3', '.ogg')
+
 
 fail_codes = "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
 
@@ -75,6 +77,10 @@ gr_genres = set(genre_dict.keys())
 my_genres = {genre_dict[x] for x in gr_genres}
 
 
+def is_audiofile(item):
+    item = Path(item)
+    return item.suffix in AUDIOFILE_EXTENSIONS
+
 def fail(n):
     # print(fail_codes[n], end='')
     pass
@@ -127,6 +133,9 @@ def get_dirs(dirs):
 def get_mp3_files(directory):
     return [os.path.join(directory, i)
                 for i in os.listdir(directory) if i[-4:]=='.mp3']
+
+def get_audio_files(directory):
+    return (item for item in Path(directory).iterdir() if is_audiofile(item))
 
 def get_single_mp3(directory):
     allmp3s = get_mp3_files(directory)
