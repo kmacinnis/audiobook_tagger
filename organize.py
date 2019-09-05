@@ -53,18 +53,32 @@ def clear_notes(directory=NEW):
 
 def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
     print(f"Merging files from {from_dir} to {to_dir}")
+    from_dir = Path(from_dir)
+    to_dir = Path(to_dir)
     for root, dirs, files in os.walk(from_dir, followlinks=True):
         for name in files:
             if name == '.DS_Store':
                 continue
-            oldpathandname = os.path.join(root, name)
-            relpath = os.path.relpath(oldpathandname, start=from_dir)
-            newpathandname = os.path.join(to_dir,relpath)
-            if overwrite or not os.path.exists(newpathandname):
+            oldpathandname = Path(root) / name
+            relpath = oldpathandname.relative_to(from_dir)
+            newpathandname = to_dir / relpath
+            if overwrite or not newpathandname.exists():
                 os.renames(oldpathandname, newpathandname)
                 print(f" - {relpath}")
-    for item in os.listdir(from_dir):
-        pass
+    for item in from_dir.iterdir():
+        try:
+            item.rmdir()
+        except OSError as e:
+            print(f'Cannot remove {item}')
+            print(e)
+            print(f'{item} contains:')
+            for x in item.iterdir():
+                print(f'      {x.name}')
+            print()
+        except NotADirectoryError as e:
+            print(f'Cannot remove {item}')
+            print(e)
+            print()
 
 def get_parent_folders(filelist):
     parent_folders = set()
