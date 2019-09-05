@@ -26,11 +26,13 @@ class Audiobook:
     
     def __add__(filepath):
         self.add_file(filepath)
+    
+    def 
 
 
 def make_audiobooks(startdir):
     ''' Takes a directory (eventually tiered, but now flat)
-    and 
+    and create Audiobook objects for the audio files inside.
     '''
     
     books = []

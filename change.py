@@ -1,10 +1,10 @@
 import mutagen
 from mutagen.id3 import ID3, COMM, Encoding
 from pathlib import Path
-from enum import Enum, auto 
+from enum import Enum, auto
 
 from pull import set_tags
-from common import get_mp3_files, gr_genres, genre_dict, get_dirs, makelist
+from common import get_mp3_files, gr_genres, genre_dict, get_dirs, makelist, get_single_mp3
 from Levenshtein import distance
 import os
 
@@ -18,16 +18,16 @@ startdir = "/Volumes/mangomedia/audiobooks/"
 
 
 class MatchStyle(Enum):
-    ''' Ways of handling matching. 
+    ''' Ways of handling matching.
     "Good match" here is defined as matches that have a score
     (see function `score_match`) lower than `SCORE_THRESHOLD`
     '''
     # `AUTO` - skip items that don't have a good match
-    AUTO = auto() 
-    
+    AUTO = auto()
+
     # `SEMIAUTO` - ask user to match items that don't have a good match
     SEMIAUTO = auto()
-    
+
     # `MANUAL` - ask user to match each item
     MANUAL = auto()
 
@@ -66,7 +66,7 @@ def match(gc, tags, match_style = MatchStyle.SEMIAUTO):
         book = item['result']
         score = item['score']
         print(f"    {i}. {book.title} - {book.authors[0]}   (score: {score}) ")
-    
+
     n = input("   Enter line number (or non-number to skip): ")
     try:
         num = int(n) - 1
@@ -80,15 +80,15 @@ def match(gc, tags, match_style = MatchStyle.SEMIAUTO):
 def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
     '''Updates date tag with original publication date from goodreads,
     updates track number to contain totaltracks,
-    
+
     If book is not passed in, will match the author and title via goodreads search.
     '''
     try:
         items[0]['book']
     except:
         items = [ {'directory' : d, 'book' : None} for d in get_dirs(items)]
-    
-    
+
+
     gc = goodreads_client
     failures = []
     successes = []
@@ -198,7 +198,7 @@ def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
 
 
 def prefix_title(directory):
-    mp3files = [os.path.join(directory, i) 
+    mp3files = [os.path.join(directory, i)
                 for i in os.listdir(directory) if i[-4:]=='.mp3']
     booktitle = 'Mansfield Park'
     for item in mp3files:
@@ -213,12 +213,12 @@ def check_versions(place):
     dirs = makelist(place)
     for index, directory in enumerate(dirs):
         print(f'<{index}> {directory}')
-        mp3files = [os.path.join(directory, i) 
+        mp3files = [os.path.join(directory, i)
                     for i in os.listdir(directory) if i[-4:]=='.mp3']
         tags = mutagen.File(mp3files[0], easy=True)
         if 'version' in tags:
             print(tags['version'])
-        print('--') 
+        print('--')
 
 def tag_test(tags):
     try:
@@ -230,7 +230,7 @@ def which_books_need_tagging(dirs, tag_test=tag_test):
     need_tagging = []
     for bookdir in dirs:
         try:
-            mp3files = [os.path.join(bookdir, i) 
+            mp3files = [os.path.join(bookdir, i)
                         for i in os.listdir(bookdir) if i[-4:]=='.mp3']
             tags = mutagen.File(mp3files[0], easy=True)
             if tag_test(tags):
@@ -267,7 +267,7 @@ def update_individual_book(directory, book_id, dryrun=False):
     gc = goodreads_client
     book = gc.book(book_id)
     print(book)
-    mp3files = [os.path.join(directory, i) 
+    mp3files = [os.path.join(directory, i)
                 for i in os.listdir(directory) if i[-4:]=='.mp3']
     if mp3files == []:
         print("Directory does not include mp3 files")
@@ -390,7 +390,7 @@ def update_descriptions(items, match_style=MatchStyle.SEMIAUTO, book=None, dryru
         for mp3file in mp3files:
             tags = ID3(mp3file)
             print(f"   - {tags['TIT2'].text[0]}")
-            
+
             tags.delall("COMM")
             tags["COMM::eng"] = COMM(
                 encoding=Encoding.UTF8,

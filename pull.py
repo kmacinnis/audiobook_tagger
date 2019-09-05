@@ -1,7 +1,7 @@
-from common import ( copy, fail, succeed, 
+from common import ( copy, fail, succeed,
                      PHONE_BACKUPS, NEW, KIDS_CHAPTERBOOKS, KIDS, MAIN )
 from organize import get_parent_folders
-from database import ( add_info_to_database, add_info_to_db_cursor, 
+from database import ( add_info_to_database, add_info_to_db_cursor,
                         item_exists, author_exists, DATABASEFILE )
 import os
 from pathlib import Path
@@ -13,14 +13,14 @@ SLASH_SUBSTITUTE = '-'
 
 
 def set_tags(path):
-    
+
     def remove_copyright(text):
         if '&#169;' in text:
             text = text.split('&#169;')[0]
         if '©' in text:
             text = text.split('©')[0]
         return text
-        
+
     try:
         tags = mutagen.File(path, easy=True)
     except mutagen.mp3.HeaderNotFoundError:
@@ -32,7 +32,7 @@ def set_tags(path):
     if 'title' not in tags.keys():
         fail(2)
         return
-    if 'genre' in tags.keys():                
+    if 'genre' in tags.keys():
         if tags['genre'] in (['Ringtone'],['Other']):
             fail(3)
             return
@@ -55,7 +55,7 @@ def set_tags(path):
         creators = artist_tag[0].split('/')
         author = creators[0]
         narrator = ', '.join(creators[1:])
-    
+
         tags['artist'] = author
         tags['composer'] = narrator
     else:
@@ -77,11 +77,14 @@ def set_tags(path):
         }
 
 
-def get_and_tag(path, destination, organize=True, get=copy, 
+def get_and_tag(path, destination, organize=True, get=copy,
         dryrun=False, check_exists=True, cursor=None):
 
     origpath, filename = os.path.split(path)
-    info = set_tags(path)
+    try:
+        info = set_tags(path)
+    except mutagen.MutagenError:
+        info = None
     if info is None:
         return
     info['oldfile'] = filename
@@ -96,7 +99,7 @@ def get_and_tag(path, destination, organize=True, get=copy,
         return
     if check_exists:
         if item_exists(info, cursor=cursor):
-            fail(6)            
+            fail(6)
             print(f"   file not copied:  {info['filename']}")
             return
         if not author_exists(info, cursor=cursor):
@@ -120,7 +123,7 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
     line = f"Pulling mp3 files from {startdir}:"
     print(f"{line}\n{'‾'*len(line)}")
     connection = sqlite3.dbapi2.connect(DATABASEFILE)
-    cursor = connection.cursor() 
+    cursor = connection.cursor()
     kwargs = {
         'destination' : destination,
         'dryrun' : dryrun,
@@ -147,4 +150,3 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
 
 
 
-        

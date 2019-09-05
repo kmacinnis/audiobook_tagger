@@ -39,7 +39,7 @@ class Row:
         self.filename = path.name
         self.filetype = path.suffix.lstrip('.')
         tags = mutagen.File(path, easy=True)
-        tags = defaultdict(lambda: ['woo'], tags)
+        tags = defaultdict(lambda: [''], tags)
         self.author = tags['artist'][0]
         self.title = tags['title'][0]
         self.narrator = tags['composer'][0]
