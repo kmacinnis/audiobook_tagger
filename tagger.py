@@ -12,7 +12,7 @@ def movefiles(path):
         if tagname not in tags.keys():
             tags[tagname] = value
 
-    origpath, filename = os.path.split(path)  
+    origpath, filename = os.path.split(path)
     tags = mutagen.File(path, easy=True)
     title, track = tags['title'][0].split(' - Part ')
     artist_tag = tags['artist']
@@ -20,7 +20,7 @@ def movefiles(path):
         creators = artist_tag[0].split('/')
         author = creators[0]
         narrator = ', '.join(creators[1:])
-    
+
         setifempty('artist', author)
         setifempty('composer', narrator)
     else:
@@ -29,7 +29,7 @@ def movefiles(path):
     setifempty('tracknumber', track.lstrip('0'))
     setifempty('album', title)
     tags.save()
-    
+
     newpath = os.path.join(origpath, author, title, filename)
     os.renames(path, newpath)
 
@@ -41,7 +41,7 @@ def tagfile(path):
         return
     if 'title' not in tags.keys():
         return
-    
+
     try:
         title, track = tags['title'][0].split(' - Part ')
     except ValueError:
@@ -55,7 +55,7 @@ def tagfile(path):
         creators = artist_tag[0].split('/')
         author = creators[0]
         narrator = ', '.join(creators[1:])
-    
+
         tags['artist'] = author
         tags['composer'] = narrator
     else:
@@ -66,12 +66,12 @@ def tagfile(path):
     if 'album' not in tags.keys():
         tags['album'] = title
     tags.save()
-    
+
     filename = tags['title'][0]
     newpath = os.path.join(origpath, author, title, filename)
     os.renames(path, newpath)
-    
-    
+
+
 def tag_all_files(maindir):
     for item in os.listdir(maindir):
         f = os.path.join(maindir,item)
@@ -97,7 +97,7 @@ def tag_and_copy(path):
         return
     if 'title' not in tags.keys():
         return
-    
+
     try:
         title, track = tags['title'][0].split(' - Part ')
     except ValueError:
@@ -111,7 +111,7 @@ def tag_and_copy(path):
         creators = artist_tag[0].split('/')
         author = creators[0]
         narrator = ', '.join(creators[1:])
-    
+
         tags['artist'] = author
         tags['composer'] = narrator
     else:
@@ -122,14 +122,14 @@ def tag_and_copy(path):
     if 'album' not in tags.keys():
         tags['album'] = title
     tags.save()
-    
+
     filename = tags['title'][0]
     newpath = os.path.join(origpath, author, title, filename)
     os.renames(path, newpath)
 
 
 def check_for_genres(root):
-    dirs = makelist(root)
+    dirs = get_leaf_dirs(root)
     genreless = []
     for directory in dirs:
         mp3file = get_single_mp3(directory)
@@ -145,7 +145,7 @@ def get_books_from_genre(root, genre):
     if genre not in my_genres:
         print(f"{genre} not in local genres")
         return
-    dirs = makelist(root)
+    dirs = get_leaf_dirs(root)
     desired = []
     for directory in dirs:
         mp3file = get_single_mp3(directory)

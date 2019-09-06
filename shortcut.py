@@ -3,8 +3,9 @@ from change import update_tags, update_descriptions
 from pull import pull_mp3_files
 from images import stretch_all_covers, create_image_search_links
 from covers import update_covers
-from common import makelist, NEW, PHONE_BACKUPS
+from common import get_leaf_dirs, NEW, MAIN, PHONE_BACKUPS
 from pathlib import Path
+from organize import clear_notes, merge
 
 
 # NEW = '/Volumes/mangomedia/temp-audiobooks/new/'
@@ -34,3 +35,7 @@ def pull_and_update(destination=NEW):
     create_image_search_links(needed_covers + needed_authors)
     return newdirs
 
+
+def clean_up(from_dir=NEW, to_dir=MAIN):
+    clear_notes(from_dir)
+    merge(from_dir=from_dir, to_dir=to_dir)

@@ -3,7 +3,7 @@ from Levenshtein import distance
 
 from change import goodreads_client as gc
 from change import match, MatchStyle
-from common import get_mp3_files, get_single_mp3, get_dirs, makelist
+from common import get_mp3_files, get_single_mp3, get_dirs, get_leaf_dirs
 
 
 THRESHOLD = 3
@@ -30,7 +30,7 @@ def check_book_authors(bookdirs):
             if num_authors == 1:
                 old_artist = tags['artist'][0]
                 new_artist = str(grbook.authors[0])
-            elif num_authors < 4: 
+            elif num_authors < 4:
                 old_artist = tags['artist'][0]
                 new_artist = ' & '.join([str(author) for author in grbook.authors])
             else: # num_authors > 4 TODO: figure out what to do with these
@@ -38,14 +38,14 @@ def check_book_authors(bookdirs):
                 many_authors.append({'dir': bookdir, 'book' : grbook})
                 continue
             new_artist = ' '.join(filter(None, new_artist.split(' ')))
-    
+
             if old_artist == new_artist:
                 print(f"     • No changes needed")
             else:
                 print(f"     • Suggest change from {old_artist} to {new_artist}")
                 change_suggested.append( {
-                    'bookdir' : bookdir, 
-                    'old_artist' : old_artist, 
+                    'bookdir' : bookdir,
+                    'old_artist' : old_artist,
                     'new_artist' : new_artist
                     }
                 )

@@ -66,7 +66,7 @@ genre_dict = {
     'graphic-novels-comics' : "Comics",
     'comic-books' : "Comics",
     'comics-and-graphic-novels' : "Comics",
-    
+
     'picture-books' : "Picture Books",
     'picture-book' : "Picture Books",
     'kids-picture-books' : "Picture Books",
@@ -96,12 +96,12 @@ def display_tags(path):
     except mutagen.mp3.HeaderNotFoundError:
         print('Cannot read tags')
         return
-    for key in tags.keys(): 
+    for key in tags.keys():
         print('        •', key.ljust(16), tags[key])
     print()
 
 def preview_tags(dirs):
-    for directory in dirs: 
+    for directory in dirs:
         display_tags(get_mp3_files(directory)[0])
 
 def copy(old, new):
@@ -116,10 +116,18 @@ def makelist(startdir, limit=None):
     dirlist = []
     for root, dirs, files in os.walk(startdir, followlinks=True):
         if dirs == []:
-            dirlist.append(root)
+            dirlist.append(Path(root))
     if limit:
         return dirlist[:limit]
     return dirlist
+
+def get_leaf_dirs(topdir):
+    return ( Path(root)
+             for root, dirs, files
+             in os.walk(topdir, followlinks=True)
+             if dirs == []
+             )
+
 
 def get_dirs(dirs):
     try:
@@ -127,7 +135,7 @@ def get_dirs(dirs):
     except TypeError:
         pass
     else:
-        dirs = makelist(main_dir)
+        dirs = get_leaf_dirs(main_dir)
     return dirs
 
 def get_mp3_files(directory):
@@ -173,5 +181,4 @@ def unique_path(filepath):
         name = name_pattern.format(**formatter)
         path = filepath.with_name(name)
 
-        
-        
+

@@ -1,12 +1,12 @@
+import os
+import mutagen
+import sqlite3
+from pathlib import Path
+
 from common import ( copy, fail, succeed,
                      PHONE_BACKUPS, NEW, KIDS_CHAPTERBOOKS, KIDS, MAIN )
-from organize import get_parent_folders
 from database import ( add_info_to_database, add_info_to_db_cursor,
                         item_exists, author_exists, DATABASEFILE )
-import os
-from pathlib import Path
-import sqlite3
-import mutagen
 
 
 SLASH_SUBSTITUTE = '-'

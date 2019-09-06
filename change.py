@@ -4,7 +4,7 @@ from pathlib import Path
 from enum import Enum, auto
 
 from pull import set_tags
-from common import get_mp3_files, gr_genres, genre_dict, get_dirs, makelist, get_single_mp3
+from common import get_mp3_files, gr_genres, genre_dict, get_dirs, get_leaf_dirs, get_single_mp3
 from Levenshtein import distance
 import os
 
@@ -210,7 +210,7 @@ def prefix_title(directory):
         print(newtitle)
 
 def check_versions(place):
-    dirs = makelist(place)
+    dirs = get_leaf_dirs(place)
     for index, directory in enumerate(dirs):
         print(f'<{index}> {directory}')
         mp3files = [os.path.join(directory, i)
@@ -240,7 +240,7 @@ def which_books_need_tagging(dirs, tag_test=tag_test):
     return need_tagging
 
 def identify_spoken(dirs):
-    books = makelist(dirs)
+    books = get_leaf_dirs(dirs)
     positives = []
     for b in books:
         book = Path(b)

@@ -33,7 +33,7 @@ def remove_all_copyright_symbols(dirs):
                 print(f"- Updated {directory}")
 
 def check_if_books_exists(olddir=MAIN, newdir=NEW):
-    books = makelist(newdir)
+    books = get_leaf_dirs(newdir)
     duplicates = []
     for book in books[:]:
         relpath = os.path.relpath(book, start=newdir)
@@ -61,7 +61,7 @@ def remove_after_parens(dirs):
 
 def set_initial_tags(dirs):
     for bookdir in dirs:
-        mp3files = [os.path.join(bookdir, i) 
+        mp3files = [os.path.join(bookdir, i)
                     for i in os.listdir(bookdir) if i[-4:]=='.mp3']
         for mp3file in mp3files:
             set_tags(os.path.join(bookdir,mp3file))

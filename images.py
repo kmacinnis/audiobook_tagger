@@ -4,7 +4,7 @@ from mutagen.id3 import ID3, APIC, PictureType, Encoding
 from PIL import ImageFile
 from pathlib import Path
 
-from common import makelist, get_mp3_files, NEW, unique_path
+from common import get_leaf_dirs, get_mp3_files, NEW, unique_path
 
 mimetype = {
     'JPEG' : 'image/jpeg',
@@ -99,9 +99,38 @@ def stretch_cover_image(mp3file):
     tags.add(newapic)
     tags.save()
 
+def extract_cover_image(mp3file):
+
+    tags = ID3(mp3file)
+    #TODO: Decide whether should do anything with mulitple pictures
+    for tag in tags.keys():
+        if tag[:4] == "APIC":
+            apic_tag = tag
+
+            break
+    try:
+        apic = tags[apic_tag]
+    except NameError:
+        return
+    tags.delall(apic_tag)
+    tags.save()
+    parser = ImageFile.Parser()
+    parser.feed(apic.data)
+    im = parser.close()
+    width, height = im.size
+    if width == height:
+        square_image = im
+    else:
+        maxdim = max(width, height)
+        square_image = im.resize((maxdim, maxdim))
+    with io.BytesIO() as output:
+        square_image.save(output, format=im.format)
+        data = output.getvalue()
+
+
 def stretch_all_covers(startdir):
     if isinstance(startdir, str):
-        dirs = makelist(startdir)
+        dirs = get_leaf_dirs(startdir)
     else:
         dirs = startdir
     for bookdir in dirs:
@@ -109,11 +138,14 @@ def stretch_all_covers(startdir):
         for mp3file in mp3files:
             stretch_cover_image(os.path.join(bookdir,mp3file))
 
-
-
-
-
-
-
-
-
+def stretch_all_covers(startdir):
+    if isinstance(startdir, str):
+        dirs = get_leaf_dirs(startdir)
+    else:
+        dirs = startdir
+    for bookdir in dirs:
+        mp3files = get_mp3_files(bookdir)
+        for mp3file in mp3files:
+            stretch_cover_image(os.path.join(bookdir, mp3file))
+        if len(x for x in bookdir.iterdir() if x.stem.startswith('cover')) > 0:
+            return

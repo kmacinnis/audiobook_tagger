@@ -4,7 +4,7 @@ import mutagen
 from enum import Enum, auto
 from pathlib import Path
 
-from common import MAIN, NEW, KIDS_CHAPTERBOOKS, makelist, get_single_mp3
+from common import MAIN, NEW, KIDS_CHAPTERBOOKS, get_leaf_dirs, get_single_mp3
 
 
 class OrgType(Enum):
@@ -50,6 +50,8 @@ def clear_notes(directory=NEW):
         if '_ needs photo' in contents and 'artist' in contents:
             unneeded = author_dir / '_ needs photo'
             os.remove(unneeded)
+    for page in (x for x in directory.iterdir() if x.suffix == '.html'):
+        os.remove(page)
 
 def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
     print(f"Merging files from {from_dir} to {to_dir}")
@@ -68,16 +70,16 @@ def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
     for item in from_dir.iterdir():
         try:
             item.rmdir()
+        except NotADirectoryError as e:
+            print(f'Cannot remove {item}')
+            print(e)
+            print()
         except OSError as e:
             print(f'Cannot remove {item}')
             print(e)
             print(f'{item} contains:')
             for x in item.iterdir():
                 print(f'      {x.name}')
-            print()
-        except NotADirectoryError as e:
-            print(f'Cannot remove {item}')
-            print(e)
             print()
 
 def get_parent_folders(filelist):
@@ -89,7 +91,7 @@ def move_to_final_destination(dirs=None, booklist=None):
     if booklist is None:
         if dirs is None:
             dirs = NEW
-        books = makelist(dirs)
+        books = get_leaf_dirs(dirs)
     else:
         books = booklist
     for b in books:
