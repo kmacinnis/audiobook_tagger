@@ -8,10 +8,10 @@ from common import get_mp3_files, gr_genres, genre_dict, get_dirs, get_leaf_dirs
 from Levenshtein import distance
 import os
 
-from goodreads import client
-API_KEY = "iaqF5jmbfkRAsudBGVHXLg"
-CLIENT_SECRET = "2Af9zFVtOHVAlJcCM9DjymoeOMFKv6ePo1YC3GhxaQg"
-goodreads_client = client.GoodreadsClient(API_KEY, CLIENT_SECRET)
+from goodreads.client import GoodreadsClient
+from keys import GOODREADS_API_KEY, GOODREADS_CLIENT_SECRET
+
+goodreads_client = GoodreadsClient(GOODREADS_API_KEY, GOODREADS_CLIENT_SECRET)
 
 SCORE_THRESHOLD = 5
 startdir = "/Volumes/mangomedia/audiobooks/"
