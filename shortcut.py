@@ -6,6 +6,7 @@ from covers import update_covers
 from common import get_leaf_dirs, NEW, MAIN, PHONE_BACKUPS
 from pathlib import Path
 from organize import clear_notes, merge
+from authors import check_book_authors
 
 
 # NEW = '/Volumes/mangomedia/temp-audiobooks/new/'
@@ -15,8 +16,8 @@ from organize import clear_notes, merge
 
 
 
-def pull_and_update(destination=NEW):
-    mp3s = pull_mp3_files(destination=destination)
+def pull_and_update(startdir=PHONE_BACKUPS, destination=NEW):
+    mp3s = pull_mp3_files(startdir=startdir,destination=destination)
     # stretch_all_covers(destination)
     if mp3s == []:
         print(f"No mp3 files found in {PHONE_BACKUPS}")

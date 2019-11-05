@@ -12,11 +12,13 @@ parser.add_argument('path',
                     nargs=1,
                     help='the path to a directory containing audiobook files'
                     )
-parser.add_argument('--nocovers',
+parser.add_argument('--no-covers',
                     action='store_true',
-                    dest='nocovers',
-                    help="passing --nocovers means we won't look for covers"
+                    help="passing --no-covers means we won't look for covers"
                     )
+my_group = parser.add_mutually_exclusive_group(required=False)
+my_group.add_argument('-v', '--verbose', action='store_true')
+my_group.add_argument('-s', '--silent', action='store_true')
 
 args = parser.parse_args()
 top_path = Path(args.path)

@@ -41,6 +41,8 @@ def sort_search_items(items):
     items.sort(key=key)
 
 def create_image_search_links(search_items, docpath=NEW, docname=DOC_NAME):
+    if not search_items:
+        return
     path = unique_path(Path(docpath) / docname)
     with open(path, 'w') as search_doc:
         search_doc.write(PAGE_START)

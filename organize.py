@@ -59,17 +59,25 @@ def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
     to_dir = Path(to_dir)
     for root, dirs, files in os.walk(from_dir, followlinks=True):
         for name in files:
-            if name == '.DS_Store':
-                continue
             oldpathandname = Path(root) / name
             relpath = oldpathandname.relative_to(from_dir)
             newpathandname = to_dir / relpath
+            if name == '.DS_Store':
+                os.remove(oldpathandname)
+                continue
             if overwrite or not newpathandname.exists():
                 os.renames(oldpathandname, newpathandname)
                 print(f" - {relpath}")
     for item in from_dir.iterdir():
+        if item.samefile(NEW):
+            continue
+        if item.stem == '.DSStore':
+            os.remove(item)
+            continue
+
         try:
-            item.rmdir()
+            if not item.samefile(NEW):
+                item.rmdir()
         except NotADirectoryError as e:
             print(f'Cannot remove {item}')
             print(e)

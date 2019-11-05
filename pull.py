@@ -10,7 +10,7 @@ from database import ( add_info_to_database, add_info_to_db_cursor,
 
 
 SLASH_SUBSTITUTE = '-'
-
+COLON_SUBSTITUTE = '\uA789'
 
 def set_tags(path):
 
@@ -36,10 +36,12 @@ def set_tags(path):
         if tags['genre'] in (['Ringtone'],['Other']):
             fail(3)
             return
-    try:
+    titletrack = tags['title'][0]
+    if ' - Part' in titletrack:
         title, track = tags['title'][0].split(' - Part ')
-        title = title.replace('/',SLASH_SUBSTITUTE)
-    except ValueError:
+    elif ' - Disc' in titletrack:
+        title, track = tags['title'][0].split(' - Disc ')
+    else:
         try:
             title = tags['album'][0]
             track = tags['tracknumber'][0]
@@ -66,12 +68,16 @@ def set_tags(path):
     if 'album' not in tags.keys():
         tags['album'] = title
     if ' - ' in tags['album'][0]:
-        album, series = tags['album'][0].split(' - ')
-        tags['album'] = album
-        tags['version'] = series
+        try:
+            album, series = tags['album'][0].split(' - ')
+            tags['album'] = album
+            tags['version'] = series
+        except ValueError: # more than one " - " in album won't unpack
+            pass
     tags.save()
     return {
-        'filename' : tags['title'][0].replace('/',SLASH_SUBSTITUTE) + '.mp3',
+        'filename' : titletrack.replace(':',COLON_SUBSTITUTE
+                                    ).replace('/',SLASH_SUBSTITUTE) + '.mp3',
         'title' : title,
         'author' : author,
         }
@@ -102,9 +108,13 @@ def get_and_tag(path, destination, organize=True, get=copy,
             fail(6)
             print(f"   file not copied:  {info['filename']}")
             return
+        else:
+            try:
+                authorpath.mkdir(parents=True, exist_ok=True)
+            except NameError:
+                pass
         if not author_exists(info, cursor=cursor):
             needs_photo = authorpath / '_ needs photo'
-            needs_photo.parent.mkdir()
             needs_photo.touch()
     if cursor is None:
         add_info_to_database(info)
@@ -124,18 +134,19 @@ def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
     print(f"{line}\n{'‾'*len(line)}")
     connection = sqlite3.dbapi2.connect(DATABASEFILE)
     cursor = connection.cursor()
+    mp3files = []
+    if move_without_copying:
+        get = os.renames
+    else:
+        get = copy
     kwargs = {
         'destination' : destination,
         'dryrun' : dryrun,
         'organize' : organize,
         'check_exists' :check_exists,
         'cursor' : cursor,
+        'get' : get,
     }
-    mp3files = []
-    if move_without_copying:
-        get = os.renames
-    else:
-        get = copy
     for root, dirs, files in os.walk(startdir, followlinks=True):
         for name in files:
             filepathandname = os.path.join(root, name)
