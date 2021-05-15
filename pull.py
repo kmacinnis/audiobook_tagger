@@ -3,7 +3,7 @@ import mutagen
 import sqlite3
 from pathlib import Path
 
-from common import ( copy, fail, succeed,
+from common import ( copy, fail, succeed, unique_path,
                      PHONE_BACKUPS, NEW, KIDS_CHAPTERBOOKS, KIDS, MAIN )
 from database import ( add_info_to_database, add_info_to_db_cursor,
                         item_exists, author_exists, DATABASEFILE )
@@ -100,6 +100,7 @@ def get_and_tag(path, destination, organize=True, get=copy,
         authorpath = destination /  info['author']
     else:
         newpathandname = destination / info['filename']
+    newpathandname = unique_path(newpathandname)
     if os.path.exists(newpathandname):
         fail(5)
         return

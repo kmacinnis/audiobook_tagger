@@ -5,6 +5,7 @@ from PIL import ImageFile
 from pathlib import Path
 
 from common import get_leaf_dirs, get_mp3_files, NEW, unique_path
+from covers import AUDIOBOOKSTORE_SEARCH_URI
 
 mimetype = {
     'JPEG' : 'image/jpeg',
@@ -26,7 +27,9 @@ PAGE_END = '''
 </body>
 </html> 
 '''
-SEARCH_ITEM = '<p><a href="https://google.com/search?q={0}&tbm=isch">{0}</a></p>\n'
+GOOGLE_INFO_SEARCH = 'Google: <a href="https://google.com/search?q={0}">{0}</a>\n'
+GOOGLE_IMAGE_SEARCH = 'GoogleImages: <a href="https://google.com/search?q={0}&tbm=isch">{0}</a>\n'
+AUDIOBOOKSTORE_SEARCH = f'Audiobookstore: <a href="{AUDIOBOOKSTORE_SEARCH_URI}">{{0}}</a>\n'
 
 def sort_search_items(items):
 
@@ -47,24 +50,19 @@ def create_image_search_links(search_items, docpath=NEW, docname=DOC_NAME):
     with open(path, 'w') as search_doc:
         search_doc.write(PAGE_START)
         for item in search_items:
-            search_doc.write(SEARCH_ITEM.format(item,))
+            search_doc.write('\n<p>\n')
+            if item.endswith('audiobook cover'):
+                true_item = item[:-15]
+                search_doc.write(f'<h2>{true_item}</h2>\n')
+                search_doc.write(GOOGLE_INFO_SEARCH.format(true_item,))
+                search_doc.write('\n<br/>\n')
+                search_doc.write(AUDIOBOOKSTORE_SEARCH.format(true_item,))
+                search_doc.write('\n<br/>\n')
+            search_doc.write(GOOGLE_IMAGE_SEARCH.format(item,))
+            search_doc.write('\n</p>\n')
         search_doc.write(PAGE_END)
 
-def compile_image_search_links(docpath=NEW, docname=COMPILED_DOC_NAME):
-    docpath = Path(docpath)
-    image_search_links =[x for x in docpath.iterdir() if x.name.startswith('_image_search_links')]
-    textlines = set()
-    newpath = unique_path(Path(docpath) / docname)
-    with open(newpath, 'w') as compiled_doc:
-        for f in image_search_links:
-            with open(docpath / f, 'r') as search_link_file:
-                newlines = [x for x in list(search_link_file) if x.startswith('<p>')]
-                textlines = textlines.union(newlines)
-        textlines = list(textlines)
-        compiled_doc.write(PAGE_START)
-        sort_search_items(textlines)
-        compiled_doc.writelines(textlines)
-        compiled_doc.write(PAGE_END)
+
 
 def stretch_cover_image(mp3file):
     tags = ID3(mp3file)

@@ -2,11 +2,11 @@ import requests
 import urllib
 import mutagen
 from PIL import ImageFile
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from pathlib import Path
 from common import DESKTOP, MAIN, unique_path, get_dirs, get_mp3_files
 
-AUDIOBOOKSTORE_SEARCH_URI = "https://audiobookstore.com/search.aspx?Keyword=%s"
+AUDIOBOOKSTORE_SEARCH_URI = "https://audiobookstore.com/search.aspx?Keyword={0}"
 AUDIBLE_SEARCH_URI = "https://www.audible.com/search?keywords=%s"
 
 def has_separate_cover(bookdir):
@@ -66,10 +66,10 @@ def get_audiobookstore_cover_image(author, title, directory=None):
         save_location = Path(directory) / 'cover'
     search_string = urllib.parse.quote(f"{author} - {title}")
     try:
-        page = requests.get(AUDIOBOOKSTORE_SEARCH_URI % search_string)
+        page = requests.get(AUDIOBOOKSTORE_SEARCH_URI.format(search_string,))
         soup = BeautifulSoup(page.content, 'html.parser')
-        soup.select('img#imageAudiobookCoverArt')
-        cover_uri = soup.select('img#imageAudiobookCoverArt')[0]['src']
+        # soup.select('img#fancybox-img')
+        cover_uri = soup.select('img#fancybox-img')[0]['src']
         ext = Path(cover_uri).suffix
         save_location = unique_path(save_location.with_suffix(ext))
         urllib.request.urlretrieve(cover_uri, filename=save_location)
@@ -96,7 +96,7 @@ def update_covers(dirs, dryrun=False):
         tags = mutagen.File(mp3files[0], easy=True)
         authortag = tags['artist'][0]
         booktitletag = tags['album'][0]
-        if get_audiobookstore_cover_image(authortag, booktitletag, directory):
+        if False:  #get_audiobookstore_cover_image(authortag, booktitletag, directory):
             successes.append(directory)
             clear_embedded_image(directory)
         else:

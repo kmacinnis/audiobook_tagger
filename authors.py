@@ -2,7 +2,6 @@ import re
 import mutagen
 from Levenshtein import distance
 
-from change import goodreads_client as gc
 from change import match, MatchStyle
 from common import get_mp3_files, get_single_mp3, get_dirs, get_leaf_dirs
 
@@ -34,7 +33,7 @@ def check_book_authors(bookdirs):
 
             samplefile = get_single_mp3(bookdir)
             tags = mutagen.File(samplefile, easy=True)
-            result = match(gc, tags, match_style = MatchStyle.AUTO)
+            result = match(tags, match_style = MatchStyle.AUTO)
             if result is None:
                 print("     • Problem matching book")
                 continue
