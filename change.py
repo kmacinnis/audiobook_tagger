@@ -133,7 +133,7 @@ def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
         if year and month and day:
             pubdate = f'{year}{month:0>2}{day:0>2}'
         elif year and month:
-            pubdate = f'{year}{month:0>2}'
+            pubdate = f'{year}{month:0>2}01'
         else:
             pubdate = year
         if book.series_works:
@@ -166,6 +166,12 @@ def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
                 print(f"     • Changed date from {origdate} to {pubdate}")
             tracktag = tags['tracknumber'][0]
             if '/' not in tracktag:
+                if int(tracktag) > totaltracks:
+                    print('\n\n','█'*100)
+                    msg = 'PROBLEM: Track number is higher than number of total tracks'
+                    print('█',msg.center(98),'█')
+                    print('█'*100,'\n\n')
+                
                 newtracktag = f'{tracktag}/{totaltracks}'
                 tags['tracknumber'] = newtracktag
                 print(f"     • Changed track number from {tracktag} to {newtracktag}")

@@ -4,7 +4,13 @@ import mutagen
 from enum import Enum, auto
 from pathlib import Path
 
-from common import MAIN, NEW, KIDS_CHAPTERBOOKS, get_leaf_dirs, get_single_mp3
+from common import (MAIN, NEW, KIDS_CHAPTERBOOKS, get_leaf_dirs, get_single_mp3, 
+                    unique_path, SPLIT, SPLIT_OUTPUT)
+
+
+
+SLASH_SUBSTITUTE = '-'
+COLON_SUBSTITUTE = '\uA789'
 
 
 class OrgType(Enum):
@@ -52,6 +58,12 @@ def clear_notes(directory=NEW):
             os.remove(unneeded)
     for page in (x for x in directory.iterdir() if x.suffix == '.html'):
         os.remove(page)
+
+def clear_playlists(directory=NEW):
+    directory = Path(directory)
+    leaf_dirs = get_leaf_dirs(directory) 
+    for playlist in (x for x in leaf_dirs if x.suffix == '.m3u'):
+        os.remove(playlist)
 
 def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
     print(f"Merging files from {from_dir} to {to_dir}")
@@ -150,7 +162,8 @@ def delete_unwanted_files(directory):
     trashextensionlist = [  '.rar' , '.srr' , '.sfv' , '.nzb' , '.tbn' ,
                             '.nfo' , '.jpg' , '.gif' , '.png' , '.md5' ,
                             '.txt' , '.url' , '.par2' , '.par', '.srs'
-                            '.0', '.1' , '.2' , '.3' , '.4' , '.5' , '.6' , '.7' , '.8' , '.9' ]
+                            '.0', '.1' , '.2' , '.3' , '.4' ,
+                            '.5' , '.6' , '.7' , '.8' , '.9' ]
 
     for root, dirs, files in os.walk(directory):
         for name in files:
@@ -159,3 +172,46 @@ def delete_unwanted_files(directory):
                 os.remove(filepathandname)
 
 
+def merge_images(to_dir=SPLIT_OUTPUT, from_dir=SPLIT, overwrite=False):
+    print(f"Merging images from {from_dir} to {to_dir}")
+    from_dir = Path(from_dir)
+    to_dir = Path(to_dir)
+    IMAGE_EXTS = ['.jpg','.jpeg','.png']
+    for root, dirs, files in os.walk(from_dir, followlinks=True):
+        for name in files:
+            oldpathandname = Path(root) / name
+            if oldpathandname.suffix in IMAGE_EXTS:
+                relpath = oldpathandname.relative_to(from_dir)
+                newpathandname = unique_path(to_dir / relpath)
+                os.renames(oldpathandname, newpathandname)
+                print(f" - {relpath}")
+
+
+def rename_bookdirs(directory, book):
+    if book.series_works is None:
+        return
+    try:
+        num = book.series_works['series_work']['user_position']
+        series = book.series_works['series_work']['series']['title']
+        title = book.title.split(' (')[0]
+    except TypeError: 
+        # if the book is associated with more than one series,
+        # just use the first one
+        num = book.series_works['series_work'][0]['user_position']
+        series = book.series_works['series_work'][0]['series']['title']
+        title = book.title.split(' (')[0]
+        
+    newname = f"{series} #{num} - {title}" 
+    newpath = directory.parent / newname.replace(':',COLON_SUBSTITUTE
+                                    ).replace('/',SLASH_SUBSTITUTE)
+
+    try:
+        os.rename(directory, newpath)
+    except OSError as err:
+        print(f'Cannot rename {directory} to {newname}')
+        print(err)
+    return newpath
+
+
+
+    

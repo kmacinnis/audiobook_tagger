@@ -6,10 +6,15 @@ from pathlib import Path
 
 
 MAIN = '/Volumes/mangomedia/MediaSections/AudioSections/audiobooks/'
-TEMP = '/Volumes/mangomedia/temp-audiobooks/'
-NEW = '/Volumes/mangomedia/temp-audiobooks/new/'
-HOLDING = "/Volumes/mangomedia/temp-audiobooks/holding-pen/"
-FROM_CD = "/Volumes/mangomedia/temp-audiobooks/From CD/"
+TEMP = '/Volumes/mangomedia/audiobook_processing/'
+NEW = '/Volumes/mangomedia/audiobook_processing/new/'
+HOLDING = "/Volumes/mangomedia/audiobook_processing/holding-pen/"
+FROM_CD = "/Volumes/mangomedia/audiobook_processing/From CD/"
+K3B_OUTPUT = "/Volumes/mangomedia/k3b_output/"
+SPLIT = '/Volumes/mangomedia/audiobook_processing/split/'
+SPLIT_OUTPUT = '/Volumes/mangomedia/audiobook_processing/split_output/'
+
+
 PHONE_BACKUPS = os.path.expanduser(
     '~/Library/Application Support/MobileSync/Backup')
 DESKTOP = Path('~/Desktop/').expanduser()
@@ -139,8 +144,8 @@ def get_dirs(dirs):
     return dirs
 
 def get_mp3_files(directory):
-    return [os.path.join(directory, i)
-                for i in os.listdir(directory) if i[-4:]=='.mp3']
+    directory = Path(directory)
+    return [directory / i for i in directory.iterdir() if i.suffix=='.mp3']
 
 def get_audio_files(directory):
     return (item for item in Path(directory).iterdir() if is_audiofile(item))
