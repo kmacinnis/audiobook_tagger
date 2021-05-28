@@ -1,11 +1,11 @@
 import os
-# from change import update_tags, update_descriptions
+from change import update_tags
 from pull import pull_mp3_files
 from images import stretch_all_covers, create_image_search_links
 from covers import update_covers
 from common import get_leaf_dirs, NEW, MAIN, PHONE_BACKUPS
 from organize import clear_notes, clear_playlists, merge, rename_bookdirs
-# from authors import check_book_authors
+from authors import check_book_authors
 
 from pathlib import Path
 from enum import Enum, auto
@@ -31,16 +31,16 @@ def pull_and_update(startdir=PHONE_BACKUPS,
         return
     newdirs = set([Path(mp3).parent for mp3 in mp3s])
     tagged = update_tags(newdirs)
-    update_descriptions(tagged['successes'])
+    # update_descriptions(tagged['successes'])
     
-    print('Checking for series names:')
-    for item in tagged['successes']: 
-        newpath = rename_bookdirs(**item)
-        print(item)
-        if newpath is not None:
-            print(f" * Renaming directory to {newpath}")
-            item['directory'] = newpath
-            print(item)
+    # print('Checking for series names:')
+    # for item in tagged['successes']:
+    #     newpath = rename_bookdirs(**item)
+    #     print(item)
+    #     if newpath is not None:
+    #         print(f" * Renaming directory to {newpath}")
+    #         item['directory'] = newpath
+    #         print(item)
     corrected_dirs = [x['directory'] for x in tagged['successes']]
     cover_results = update_covers(corrected_dirs)
     needed_covers = ['{} audiobook cover'.format(x)
@@ -51,7 +51,6 @@ def pull_and_update(startdir=PHONE_BACKUPS,
     needed_authors.sort()
     needed_covers.sort()
     create_image_search_links(needed_covers + needed_authors)
-    print('\n',repr(newdirs),'\n')
     return tagged
 
 
@@ -61,13 +60,18 @@ def clean_up(from_dir=NEW, to_dir=MAIN):
     merge(from_dir=from_dir, to_dir=to_dir)
     
 def update_new(new=NEW, get_images=CoverOption.ONLY_NEEDED):
-    newdirs = set(get_leaf_dirs(new))
+    try:
+        new = Path(new)
+        newdirs = set(get_leaf_dirs(new))
+    except TypeError:
+        pass
+    
     tagged = update_tags(newdirs)
-    update_descriptions(tagged['successes'])
-    for item in tagged['successes']: 
-        newpath = rename_bookdirs(**item)
-        if newpath is not None:
-            item['directory'] = newpath
+    # update_descriptions(tagged['successes'])
+    # for item in tagged['successes']:
+    #     newpath = rename_bookdirs(**item)
+    #     if newpath is not None:
+    #         item['directory'] = newpath
     if get_images == CoverOption.NEVER:
         dirs_that_need_covers = []
     elif get_images == CoverOption.ALWAYS:
@@ -85,7 +89,6 @@ def update_new(new=NEW, get_images=CoverOption.ONLY_NEEDED):
     needed_authors.sort()
     needed_covers.sort()
     create_image_search_links(needed_covers + needed_authors)
-    print('\n',repr(newdirs),'\n')
     return tagged
 
 

@@ -13,6 +13,7 @@ FROM_CD = "/Volumes/mangomedia/audiobook_processing/From CD/"
 K3B_OUTPUT = "/Volumes/mangomedia/k3b_output/"
 SPLIT = '/Volumes/mangomedia/audiobook_processing/split/'
 SPLIT_OUTPUT = '/Volumes/mangomedia/audiobook_processing/split_output/'
+SPLIT_BACKUP = '/Volumes/mangomedia/audiobook_processing/split_backup/'
 
 
 PHONE_BACKUPS = os.path.expanduser(
