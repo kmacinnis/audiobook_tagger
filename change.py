@@ -20,9 +20,12 @@ MAX_RESULTS = 10
 
 
 class BookInfo:
-    def __init__(self, info, **kwargs):
+    def __init__(self, info=None, **kwargs):
         # print(info.keys())
         # print(info)
+        if info is None and 'gb_id' in kwargs.keys():
+            #TODO: get the book info from the google books id
+            pass
         self.title = info.get('title',' ██████████ MISSING TITLE ██████████ ')
         # TODO: make multiple authors nicer
         authors = info.get('authors', [])
@@ -35,6 +38,9 @@ class BookInfo:
         
     def __str__(self):
         return f'{self.title} by {self.author} ({self.pubdate})'
+        
+    def __repr__(self):
+        return f'<BookInfo: gb_id={self.gb_id}>'
         
     def scrape_extra_data():
         page = requests.get(self.gb_link)
@@ -61,9 +67,9 @@ class MatchStyle(Enum):
 
 
 def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
+    authortag = tags['artist'][0]
+    booktitletag = tags['album'][0]
     if search_terms is None:
-        authortag = tags['artist'][0]
-        booktitletag = tags['album'][0]
         search_terms = f'intitle:{booktitletag} inauthor:{authortag}'
     gb = build('books','v1',developerKey=GOOGLE_API_KEY)
     print(f'   Searching google books for: “{search_terms}”')
@@ -92,7 +98,7 @@ def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
                 )
             title_score = distance(booktitletag, info['title'])
             score = author_score + title_score
-        except:
+        except mutagen.MutagenError:
             score = 999
         book = BookInfo(info)
         score_chart.append({'score': score, 'book': book})
@@ -111,8 +117,13 @@ def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
     if not score_chart:
         print(f"    * No results from google books for “{search_terms}” *")
     
-    print('\n    C. Change search terms and search again')
-    print('    S. Skip this audiobook\n')
+    print('\n')
+    print('    T. Re-do search using only the title')
+    print('    C. Change search terms and search again')
+    print('    S. Skip this audiobook')
+    print('\n')
+    
+    
 
     response = 'True'
     while response:
@@ -120,6 +131,8 @@ def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
         if response in ('S','s'):
             # Skip this audiobook by returning no match
             return
+        elif response in ('T', 't'):
+            return match(tags, search_terms=booktitletag, match_style=match_style)
         elif response in ('C','c'):
             new_terms = input('Enter new search terms:')
             return match(tags, search_terms=new_terms, match_style=match_style)
@@ -170,7 +183,7 @@ def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
             print()
             failures.append(directory)
             continue
-        elif (result['score'] > SCORE_THRESHOLD
+        elif result is None or (result['score'] > SCORE_THRESHOLD
                                 and match_style == MatchStyle.AUTO):
             print("************* Problem matching book.")
             print(f"************* Best match is {result} ")
@@ -184,6 +197,42 @@ def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
         pubdate = ''.join(book.pubdate.split('-'))
         
         
+        newauthor = ''
+        oldauthor = tags["artist"][0]
+        author_distance = distance(book.author, tags['artist'][0])
+
+        if author_distance > 0:
+            space = ' '*(len(f'<{index}>   '))
+            print()
+            print(f'{space} Discrepancy in authors identified. Select one:')
+            print(f'{space} 1. {book.author}')
+            print(f'{space} 2. {tags["artist"][0]}')
+            print(f'{space} 3. Type in other option')
+            print(f'{space} 4. Make no changes')
+            print()
+            response = input(f'{space} Select from above: ')
+            print()
+            while True:
+                if response == '1':
+                    newauthor = book.author
+                    oldauthor = tags["artist"][0]
+                    break
+                elif response == '2':
+                    # newauthor = tags["artist"][0]
+                    book.author = tags["artist"][0]
+                    newauthor = False
+                    break
+                elif response == '3':
+                    newauthor = input(f'{space} Enter new author: ')
+                    book.author = newauthor
+                    oldauthor = tags["artist"][0]
+                    break
+                elif response == '4':
+                    newauthor = False
+                    break
+                else:
+                    response = input(f'{space} Select valid option from above: ')
+
         for item in mp3files:
             try:
                 tags = mutagen.File(item, easy=True)
@@ -195,6 +244,10 @@ def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
             except KeyError:
                 temp_title = ' ██████████ MISSING TITLE ██████████ '
             print(f"   - {temp_title}")
+            if newauthor:
+                tags['artist'] = newauthor
+                print(f"     • Changed author from {oldauthor} to {newauthor}")
+                
             try:
                 origdate = tags['date'][0]
             except KeyError:

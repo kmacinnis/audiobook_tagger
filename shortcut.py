@@ -6,6 +6,7 @@ from covers import update_covers
 from common import get_leaf_dirs, NEW, MAIN, PHONE_BACKUPS
 from organize import clear_notes, clear_playlists, merge, rename_bookdirs
 from authors import check_book_authors
+from splitter import create_split_files, make_cue_sheets
 
 from pathlib import Path
 from enum import Enum, auto
@@ -33,14 +34,8 @@ def pull_and_update(startdir=PHONE_BACKUPS,
     tagged = update_tags(newdirs)
     # update_descriptions(tagged['successes'])
     
-    # print('Checking for series names:')
-    # for item in tagged['successes']:
-    #     newpath = rename_bookdirs(**item)
-    #     print(item)
-    #     if newpath is not None:
-    #         print(f" * Renaming directory to {newpath}")
-    #         item['directory'] = newpath
-    #         print(item)
+    rename_bookdirs(tagged['successes'])
+    
     corrected_dirs = [x['directory'] for x in tagged['successes']]
     cover_results = update_covers(corrected_dirs)
     needed_covers = ['{} audiobook cover'.format(x)
@@ -53,6 +48,9 @@ def pull_and_update(startdir=PHONE_BACKUPS,
     create_image_search_links(needed_covers + needed_authors)
     return tagged
 
+def split_into_chapters(directory=NEW):
+    make_cue_sheets(replace_existing=True, pad_option=PadTrackOption.AUTO, directory=directory)
+    create_split_files(directory=directory)
 
 def clean_up(from_dir=NEW, to_dir=MAIN):
     clear_notes(from_dir)
@@ -67,11 +65,9 @@ def update_new(new=NEW, get_images=CoverOption.ONLY_NEEDED):
         pass
     
     tagged = update_tags(newdirs)
-    # update_descriptions(tagged['successes'])
-    # for item in tagged['successes']:
-    #     newpath = rename_bookdirs(**item)
-    #     if newpath is not None:
-    #         item['directory'] = newpath
+    
+    rename_bookdirs(tagged['successes'])
+    
     if get_images == CoverOption.NEVER:
         dirs_that_need_covers = []
     elif get_images == CoverOption.ALWAYS:

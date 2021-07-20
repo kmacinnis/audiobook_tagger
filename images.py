@@ -92,7 +92,7 @@ def stretch_cover_image(mp3file):
         encoding=Encoding.UTF8,
         mime=mimetype[im.format],
         type=PictureType.COVER_FRONT,
-        desc='Stretched Overdrive Cover',
+        desc='Stretched Book Cover',
         data=data,
     )
     tags.delall(apic_tag)

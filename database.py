@@ -4,10 +4,8 @@ import os
 
 from pathlib import Path
 from common import get_leaf_dirs, get_mp3_files
+from private import DATABASEFILE
 
-
-APP_SUPPORT = Path('~/Library/Application Support/AudiobookHandler').expanduser()
-DATABASEFILE = APP_SUPPORT / 'overdrive.db'
 
 
 def create_database():

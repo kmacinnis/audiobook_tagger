@@ -65,7 +65,7 @@ def clear_playlists(directory=NEW):
     for playlist in (x for x in leaf_dirs if x.suffix == '.m3u'):
         os.remove(playlist)
 
-def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
+def merge(to_dir=MAIN, from_dir=NEW, overwrite=False, leave_empties=False):
     print(f"Merging files from {from_dir} to {to_dir}")
     from_dir = Path(from_dir)
     to_dir = Path(to_dir)
@@ -80,6 +80,8 @@ def merge(to_dir=MAIN, from_dir=NEW, overwrite=False):
             if overwrite or not newpathandname.exists():
                 os.renames(oldpathandname, newpathandname)
                 print(f" - {relpath}")
+    if leave_empties:
+        return
     for item in from_dir.iterdir():
         if item.samefile(NEW):
             continue
@@ -187,7 +189,7 @@ def merge_images(to_dir=SPLIT_OUTPUT, from_dir=SPLIT, overwrite=False):
                 print(f" - {relpath}")
 
 
-def rename_bookdirs(directory, book):
+def rename_bookdirs_goodreads(directory, book):
     if book.series_works is None:
         return
     try:
@@ -213,5 +215,54 @@ def rename_bookdirs(directory, book):
     return newpath
 
 
+def rename_bookdir(directory, book):
+    bookdir = Path(directory)
+    if False:
+        #TODO: Figure out how to get series info, so I can rename 
+        # directories the way I used to
+        
+        # try:
+        #
+        #     num = book.series_works['series_work']['user_position']
+        #     series = book.series_works['series_work']['series']['title']
+        #     title = book.title.split(' (')[0]
+        # except TypeError:
+        #     # if the book is associated with more than one series,
+        #     # just use the first one
+        #     num = book.series_works['series_work'][0]['user_position']
+        #     series = book.series_works['series_work'][0]['series']['title']
+        #     title = book.title.split(' (')[0]
+        #
+        # newtitle = f"{series} #{num} - {title}"
+        pass
+    else:
+        newtitle = book.title
+    newtitle = newtitle.replace(':',COLON_SUBSTITUTE
+                                    ).replace('/',SLASH_SUBSTITUTE)
+    newauthor = book.author
+    
+    # should be organized as `enclosing_bookdir / author / book`
+    enclosing_directory = bookdir.parent.parent 
+    
+    newpath = enclosing_directory / newauthor / newtitle
+    if newpath == bookdir:
+        return
 
+    try:
+        merge(from_dir=bookdir, to_dir=newpath, leave_empties=True)
+    except OSError as err:
+        print(f'Cannot rename {bookdir} to {newtitle}')
+        print(err)
+    return newpath
+
+def rename_bookdirs(items):
+    '''`items` should be a list of dictionaries, with keys `directory` and `book`'''
+    
+    print('Checking if directories should be renamed:')
+    for item in items:
+        newpath = rename_bookdir(**item)
+        if newpath is not None:
+            print(f" * Renaming {item['directory']} \n    to {newpath}")
+            item['directory'] = newpath
+    
     
