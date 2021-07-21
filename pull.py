@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 
 from common import ( copy, fail, succeed, unique_path,
-                     PHONE_BACKUPS, NEW, KIDS_CHAPTERBOOKS, KIDS, MAIN )
+                     JUMBLED_JUNK_DIR, NEW, KIDS_CHAPTERBOOKS, KIDS, MAIN )
 from database import ( add_info_to_database, add_info_to_db_cursor,
                         item_exists, author_exists, DATABASEFILE )
 
@@ -127,7 +127,7 @@ def get_and_tag(path, destination, organize=True, get=copy,
     return newpathandname
 
 
-def pull_mp3_files(startdir=PHONE_BACKUPS, destination=NEW,
+def pull_mp3_files(startdir=JUMBLED_JUNK_DIR, destination=NEW,
               organize=True, move_without_copying=False, dryrun=False,
               check_exists=True):
 

@@ -4,23 +4,22 @@ import errno
 import mutagen
 from pathlib import Path
 
+from private import BASE_WORKING_PATH, BASE_STORAGE_PATH, JUMBLED_JUNK_DIR
 
-MAIN = '/Volumes/mangomedia/MediaSections/AudioSections/audiobooks/'
-TEMP = '/Volumes/mangomedia/audiobook_processing/'
-NEW = '/Volumes/mangomedia/audiobook_processing/new/'
-HOLDING = "/Volumes/mangomedia/audiobook_processing/holding-pen/"
-FROM_CD = "/Volumes/mangomedia/audiobook_processing/From CD/"
-K3B_OUTPUT = "/Volumes/mangomedia/k3b_output/"
-SPLIT = '/Volumes/mangomedia/audiobook_processing/split/'
-SPLIT_OUTPUT = '/Volumes/mangomedia/audiobook_processing/split_output/'
-SPLIT_BACKUP = '/Volumes/mangomedia/audiobook_processing/split_backup/'
+MAIN = BASE_STORAGE_PATH / '/Volumes/mangomedia/MediaSections/AudioSections/audiobooks/'
+TEMP = BASE_WORKING_PATH / 'temp'
+NEW = BASE_WORKING_PATH / 'new/'
+HOLDING = BASE_WORKING_PATH / "holding-pen/"
+FROM_CD = BASE_WORKING_PATH / "From CD/"
+SPLIT = BASE_WORKING_PATH / 'split/'
+SPLIT_OUTPUT = BASE_WORKING_PATH / 'split_output/'
+SPLIT_BACKUP = BASE_WORKING_PATH / 'split_backup/'
 
 
-PHONE_BACKUPS = os.path.expanduser(
-    '~/Library/Application Support/MobileSync/Backup')
+
 DESKTOP = Path('~/Desktop/').expanduser()
-KIDS = "/Volumes/mangomedia/MediaSections/AudioSections/kids_audiobooks"
-KIDS_CHAPTERBOOKS = '/Volumes/mangomedia/MediaSections/AudioSections/kids_chapter_audiobooks/'
+KIDS = BASE_STORAGE_PATH / "kids_audiobooks"
+KIDS_CHAPTERBOOKS = BASE_STORAGE_PATH / 'kids_chapter_audiobooks'
 
 AUDIOFILE_EXTENSIONS = ('.mp3', '.ogg')
 

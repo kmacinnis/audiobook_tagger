@@ -6,7 +6,7 @@ import mutagen
 from collections import defaultdict
 
 from tagger import tagfile
-from common import copy, PHONE_BACKUPS, NEW
+from common import copy, JUMBLED_JUNK_DIR, NEW
 
 MIME_EXT = {
     'application/octet-stream': '.mp3',
@@ -77,7 +77,7 @@ EBOOK_TYPES = [
 MIME_DEST = '/Volumes/mangomedia/audiobook_processing/by_mime/'
 
 
-def list_mimetypes(startdir=PHONE_BACKUPS):
+def list_mimetypes(startdir=JUMBLED_JUNK_DIR):
     '''Returns a list of the mimetypes of the files in startdir '''
     mimetypes = []
     for root, dirs, files in os.walk(startdir, followlinks=True):
@@ -88,7 +88,7 @@ def list_mimetypes(startdir=PHONE_BACKUPS):
                 mimetypes.append(mimetype)
     return mimetypes
 
-def pull_by_mimetype(startdir=PHONE_BACKUPS, destination=MIME_DEST, 
+def pull_by_mimetype(startdir=JUMBLED_JUNK_DIR, destination=MIME_DEST, 
                                                 move_without_copying=False):
     """Organize files in directory tree by mimetype"""
     if move_without_copying:
@@ -103,7 +103,7 @@ def pull_by_mimetype(startdir=PHONE_BACKUPS, destination=MIME_DEST,
             ext = MIME_EXT[mimetype]
             do(filepathandname, newpathandname)
 
-def copy_desired_files(startdir=PHONE_BACKUPS, destination=MIME_EXT,
+def copy_desired_files(startdir=JUMBLED_JUNK_DIR, destination=MIME_EXT,
                       desired_types=DESIRED_TYPES, move_without_copying=False):
     if move_without_copying:
         do = os.renames

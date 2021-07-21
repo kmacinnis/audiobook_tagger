@@ -3,7 +3,7 @@ from change import update_tags
 from pull import pull_mp3_files
 from images import stretch_all_covers, create_image_search_links
 from covers import update_covers
-from common import get_leaf_dirs, NEW, MAIN, PHONE_BACKUPS
+from common import get_leaf_dirs, NEW, MAIN, JUMBLED_JUNK_DIR
 from organize import clear_notes, clear_playlists, merge, rename_bookdirs
 from authors import check_book_authors
 from splitter import create_split_files, make_cue_sheets
@@ -19,7 +19,7 @@ class CoverOption(Enum):
     ONLY_NEEDED = auto()
 
 
-def pull_and_update(startdir=PHONE_BACKUPS,
+def pull_and_update(startdir=JUMBLED_JUNK_DIR,
                     destination=NEW,
                     check_exists=True, move_without_copying=False):
     mp3s = pull_mp3_files(startdir=startdir,
