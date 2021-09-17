@@ -6,7 +6,7 @@ from covers import update_covers
 from common import get_leaf_dirs, NEW, MAIN, JUMBLED_JUNK_DIR
 from organize import clear_notes, clear_playlists, merge, rename_bookdirs
 from authors import check_book_authors
-from splitter import create_split_files, make_cue_sheets
+from splitter import create_split_files, make_cue_sheets, PadTrackOption
 
 from pathlib import Path
 from enum import Enum, auto
@@ -106,4 +106,3 @@ def just_get_images(new=NEW, get_images=CoverOption.ONLY_NEEDED):
     needed_authors.sort()
     needed_covers.sort()
     create_image_search_links(needed_covers + needed_authors)
-    

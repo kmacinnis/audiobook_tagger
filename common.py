@@ -2,6 +2,7 @@ import os
 import shutil
 import errno
 import mutagen
+import urllib
 from pathlib import Path
 
 from private import BASE_WORKING_PATH, BASE_STORAGE_PATH, JUMBLED_JUNK_DIR
@@ -185,5 +186,11 @@ def unique_path(filepath):
         formatter = {'origname':origname, 'counter':counter, 'origext':origext}
         name = name_pattern.format(**formatter)
         path = filepath.with_name(name)
+
+
+def safe_string(text):
+    text = text.replace('&','')
+    return urllib.parse.quote_plus(text)
+
 
 

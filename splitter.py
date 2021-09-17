@@ -80,7 +80,7 @@ def extract_xmldata(directory=SPLIT):
                 print(tags.keys())
                 continue
             try:
-                markertext = tags[MARKER].text[0]
+                markertext = tags[MARKER_TAG].text[0]
                 markers = etree.fromstring(markertext)
             except KeyError:
                 print(f'Cannot create cue file for {mp3path}')
@@ -135,9 +135,9 @@ def make_cue_sheets(directory=SPLIT, replace_existing=False, verbose=True,
             except:
                 date = ''
             try:
-                markertext = tags[MARKER].text[0]
+                markertext = tags[MARKER_TAG].text[0]
                 markers = etree.fromstring(markertext)
-            except KeyError:
+            except:
                 print(f'{space} ✗ Cannot create cue file for {mp3path}')
                 continue
             
@@ -155,16 +155,16 @@ def make_cue_sheets(directory=SPLIT, replace_existing=False, verbose=True,
                         try:
                             first_marker_name = markers[0].find('Name').text
                             second_marker_time = markers[1].find('Time').text
+                            if  first_marker_name == title:
+                                pad = 0
+                            elif first_marker_name == f'{title} - 1':
+                                pad = 0
+                            elif second_marker_time < '0:30.000':
+                                pad = 0
+                            else:
+                                pad = 1
                         except IndexError:
                             pad = 0
-                        if  first_marker_name == title:
-                            pad = 0
-                        elif first_marker_name == f'{title} - 1':
-                            pad = 0
-                        elif second_marker_time < '0:30.000':
-                            pad = 0
-                        else:
-                            pad = 1
                     elif pad_option == PadTrackOption.CUSTOM:
                         pad = custom_padding
                         
@@ -290,4 +290,4 @@ def testing():
     mp3files.sort()
     mp3path = mp3files[0]
     tags = mutagen.File(mp3path)
-    
+

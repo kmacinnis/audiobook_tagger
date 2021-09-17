@@ -4,7 +4,7 @@ from mutagen.id3 import ID3, APIC, PictureType, Encoding
 from PIL import ImageFile
 from pathlib import Path
 
-from common import get_leaf_dirs, get_mp3_files, NEW, unique_path
+from common import get_leaf_dirs, get_mp3_files, NEW, unique_path, safe_string
 from covers import AUDIOBOOKSTORE_SEARCH_URI
 
 mimetype = {
@@ -27,9 +27,9 @@ PAGE_END = '''
 </body>
 </html> 
 '''
-GOOGLE_INFO_SEARCH = 'Google: <a href="https://google.com/search?q={0}">{0}</a>\n'
-GOOGLE_IMAGE_SEARCH = 'GoogleImages: <a href="https://google.com/search?q={0}&tbm=isch">{0}</a>\n'
-AUDIOBOOKSTORE_SEARCH = f'Audiobookstore: <a href="{AUDIOBOOKSTORE_SEARCH_URI}">{{0}}</a>\n'
+GOOGLE_INFO_SEARCH = 'Google: <a href="https://google.com/search?q={0}">{1}</a>\n'
+GOOGLE_IMAGE_SEARCH = 'GoogleImages: <a href="https://google.com/search?q={0}&tbm=isch">{1}</a>\n'
+AUDIOBOOKSTORE_SEARCH = f'Audiobookstore: <a href="{AUDIOBOOKSTORE_SEARCH_URI}">{{1}}</a>\n'
 
 def sort_search_items(items):
 
@@ -50,19 +50,19 @@ def create_image_search_links(search_items, docpath=NEW, docname=DOC_NAME):
     with open(path, 'w') as search_doc:
         search_doc.write(PAGE_START)
         for item in search_items:
+            safe_item = safe_string(item)
             search_doc.write('\n<p>\n')
             if item.endswith('audiobook cover'):
-                true_item = item[:-15]
-                search_doc.write(f'<h2>{true_item}</h2>\n')
-                search_doc.write(GOOGLE_INFO_SEARCH.format(true_item,))
+                trueitem = (item[:-15])
+                safe_trueitem = safe_string(trueitem)
+                search_doc.write(f'<h2>{trueitem}</h2>\n')
+                search_doc.write(GOOGLE_INFO_SEARCH.format(safe_trueitem,trueitem))
                 search_doc.write('\n<br/>\n')
-                search_doc.write(AUDIOBOOKSTORE_SEARCH.format(true_item,))
+                search_doc.write(AUDIOBOOKSTORE_SEARCH.format(safe_trueitem,trueitem))
                 search_doc.write('\n<br/>\n')
-            search_doc.write(GOOGLE_IMAGE_SEARCH.format(item,))
+            search_doc.write(GOOGLE_IMAGE_SEARCH.format(safe_item,item))
             search_doc.write('\n</p>\n')
         search_doc.write(PAGE_END)
-
-
 
 def stretch_cover_image(mp3file):
     tags = ID3(mp3file)

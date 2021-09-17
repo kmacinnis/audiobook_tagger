@@ -94,10 +94,11 @@ def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
         try:
             authors = info.get('authors', [])
             author_score = min(
-                    [distance(authortag, author) for author in authors]
+                    [distance(authortag, author) for author in authors] + [99]
                 )
             title_score = distance(booktitletag, info['title'])
             score = author_score + title_score
+            #TODO: Adjust score so complete dates get a better score
         except mutagen.MutagenError:
             score = 999
         book = BookInfo(info)
