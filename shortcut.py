@@ -106,3 +106,23 @@ def just_get_images(new=NEW, get_images=CoverOption.ONLY_NEEDED):
     needed_authors.sort()
     needed_covers.sort()
     create_image_search_links(needed_covers + needed_authors)
+
+def just_create_search_links(new=NEW, get_images=CoverOption.ALWAYS):
+    book_dirs = list(set(get_leaf_dirs(new)))
+    author_dirs = list(set([Path(book).parent for book in book_dirs]))
+
+    if get_images == CoverOption.NEVER:
+        needed_covers = []
+        needed_authors = []
+    elif get_images == CoverOption.ALWAYS:
+        needed_covers = ['{} audiobook cover'.format(d.name) for d in book_dirs]
+        needed_authors = ['{} author photo'.format(d.name) for d in author_dirs]
+    elif get_images == CoverOption.ONLY_NEEDED:
+        needed_covers = ['{} audiobook cover'.format(d.name) for d in book_dirs 
+                if not any((x.stem == 'cover' for x in d.iterdir()))] 
+        needed_authors = ['{} author photo'.format(d.name) for d in author_dirs 
+                if (d/'_ needs photo').exists() and not (d/'artist.jpg').exists()]
+    needed_authors.sort()
+    needed_covers.sort()
+    create_image_search_links(needed_covers + needed_authors)
+
