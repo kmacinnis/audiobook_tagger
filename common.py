@@ -159,17 +159,36 @@ def get_single_mp3(directory):
 
 def flatten(source_dir, new_dir=None, overwrite=False):
     if new_dir is None:
-        new_dir = source_dir
+        new_dir = Path(source_dir)
     print(f"Move files nested in {source_dir} to be flatly in {new_dir}")
     for root, dirs, files in os.walk(source_dir, followlinks=False):
         for name in files:
             if name == ".DS_Store":
                 continue
-            oldpathandname = os.path.join(root, name)
-            newpathandname = os.path.join(new_dir, name)
-            if overwrite or not os.path.exists(newpathandname):
-                print(f" - {name}")
-                os.renames(oldpathandname, newpathandname)
+            oldpathandname = Path(root) / name
+            newpathandname = Path(new_dir) / name
+            if not overwrite:
+                newpathandname = unique_path(newpathandname)
+            print(f" - {name}")
+            os.renames(oldpathandname, newpathandname)
+
+def delete_unwanted_files(directory):
+    trashextensionlist = [  '.rar' , '.srr' , '.sfv' , '.nzb' , '.tbn' ,
+                            '.nfo' , '.md5' ,
+                            '.txt' , '.url' , '.par2' , '.par', '.srs'
+                            '.0', '.1' , '.2' , '.3' , '.4' ,
+                            '.5' , '.6' , '.7' , '.8' , '.9' ]
+
+    for root, dirs, files in os.walk(directory):
+        for name in files:
+            filepathandname = Path(root) / name
+            if filepathandname.suffix in trashextensionlist:
+                os.remove(filepathandname)
+
+def delete_all_files(directory):
+    for root, dirs, files in os.walk(directory):
+        for name in files:
+            os.remove(Path(root) / name)
 
 def unique_path(filepath):
     counter = 0

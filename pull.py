@@ -12,7 +12,7 @@ from database import ( add_info_to_database, add_info_to_db_cursor,
 SLASH_SUBSTITUTE = '-'
 COLON_SUBSTITUTE = '\uA789'
 
-def set_tags(path):
+def set_tags(path, **kwargs):
 
     def remove_copyright(text):
         if '&#169;' in text:
@@ -49,15 +49,14 @@ def set_tags(path):
             fail(4)
             return   # can't figure out title & track from filename or tags
     if 'artist' in tags.keys() and 'composer' in tags.keys():
-        author = remove_copyright(tags['artist'][0])
-        tags['artist'] = author
+        tags['artist'] = remove_copyright(tags['artist'][0])
         tags['composer'] = remove_copyright(tags['composer'][0])
+        author = tags['artist'][0]
     elif 'artist' in tags.keys() and 'composer' not in tags.keys():
         artist_tag = remove_copyright(tags['artist'])
         creators = artist_tag[0].split('/')
         author = creators[0]
         narrator = ', '.join(creators[1:])
-
         tags['artist'] = author
         tags['composer'] = narrator
     else:
@@ -74,7 +73,8 @@ def set_tags(path):
             tags['version'] = series
         except ValueError: # more than one " - " in album won't unpack
             pass
-    tags.save()
+    if kwargs.get('change_tags', True):
+        tags.save()
     return {
         'filename' : titletrack.replace(':',COLON_SUBSTITUTE
                                     ).replace('/',SLASH_SUBSTITUTE) + '.mp3',
@@ -84,11 +84,11 @@ def set_tags(path):
 
 
 def get_and_tag(path, destination, organize=True, get=copy,
-        dryrun=False, check_exists=True, cursor=None):
+        dryrun=False, check_exists=True, cursor=None, **kwargs):
 
     origpath, filename = os.path.split(path)
     try:
-        info = set_tags(path)
+        info = set_tags(path, **kwargs)
     except mutagen.MutagenError:
         info = None
     if info is None:
@@ -129,7 +129,7 @@ def get_and_tag(path, destination, organize=True, get=copy,
 
 def pull_mp3_files(startdir=JUMBLED_JUNK_DIR, destination=NEW,
               organize=True, move_without_copying=False, dryrun=False,
-              check_exists=True):
+              check_exists=True, change_tags=True):
 
     line = f"Pulling mp3 files from {startdir}:"
     print(f"{line}\n{'‾'*len(line)}")
@@ -147,6 +147,7 @@ def pull_mp3_files(startdir=JUMBLED_JUNK_DIR, destination=NEW,
         'check_exists' :check_exists,
         'cursor' : cursor,
         'get' : get,
+        'change_tags' : change_tags,
     }
     for root, dirs, files in os.walk(startdir, followlinks=True):
         for name in files:
