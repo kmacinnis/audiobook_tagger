@@ -17,6 +17,8 @@ def prettify_author_name(name):
          'repl': r'\1\2'},
         {'pattern' : r'(\s{2,})',
          'repl' : ' '},
+         {'pattern' : r'([A-Z])([A-Z])\s([A-Z]\.)',
+         'repl' : ''}
     ]
     for patt in patterns:
         name = re.sub(patt['pattern'], patt['repl'], name)

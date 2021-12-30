@@ -119,7 +119,8 @@ def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
         print(f"    * No results from google books for “{search_terms}” *")
     
     print('\n')
-    print('    T. Re-do search using only the title')
+    print('    N. Move author to narrator and redo search')
+    print('    T. Redo search using only the title')
     print('    C. Change search terms and search again')
     print('    S. Skip this audiobook')
     print('\n')
@@ -133,9 +134,15 @@ def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
             # Skip this audiobook by returning no match
             return
         elif response in ('T', 't'):
-            return match(tags, search_terms=booktitletag, match_style=match_style)
+            new_terms = f'intitle:{booktitletag}'
+            return match(tags, search_terms=new_terms, match_style=match_style)
         elif response in ('C','c'):
             new_terms = input('Enter new search terms:')
+            return match(tags, search_terms=new_terms, match_style=match_style)
+        elif response in ('n', 'N'):
+            tags['composer'] = tags["artist"][0]
+            tags['artist'] = '██████████ MISSING AUTHOR ██████████'
+            new_terms = f'intitle:{booktitletag}'
             return match(tags, search_terms=new_terms, match_style=match_style)
         else:
             try:
