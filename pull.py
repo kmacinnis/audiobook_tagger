@@ -23,7 +23,7 @@ def set_tags(path, **kwargs):
 
     try:
         tags = mutagen.File(path, easy=True)
-    except mutagen.mp3.HeaderNotFoundError:
+    except mutagen.MutagenError:
         fail(0)
         return
     if tags == None:

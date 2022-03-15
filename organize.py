@@ -75,7 +75,10 @@ def merge(to_dir=MAIN, from_dir=NEW, overwrite=False, leave_empties=False):
             relpath = oldpathandname.relative_to(from_dir)
             newpathandname = to_dir / relpath
             if name == '.DS_Store':
-                os.remove(oldpathandname)
+                try:
+                    os.remove(oldpathandname)
+                except:
+                    pass
                 continue
             if overwrite or not newpathandname.exists():
                 os.renames(oldpathandname, newpathandname)

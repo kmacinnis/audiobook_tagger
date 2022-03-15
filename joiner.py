@@ -38,3 +38,21 @@ def join_split_bits(bookdir):
 def join_all_split_bits(directory):
     for bookdir in get_leaf_dirs(directory):
         join_split_bits(bookdir)
+
+
+def reencode(bookdir):
+    for chapter in bookdir.iterdir():
+        if chapter.suffix != '.mp3':
+            continue
+        name = chapter.name
+        newchapter = f'zz {name}'
+        ffmpeg_args = ['ffmpeg',
+                         '-i', name,
+                         '-codec:a', 'libmp3lame',
+                         '-b:a', '64k', 
+                         newchapter]
+        subprocess.run(ffmpeg_args, cwd=bookdir)
+
+for bookdir in authordir.iterdir():
+    reencode(bookdir)
+
