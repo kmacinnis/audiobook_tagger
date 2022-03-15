@@ -8,6 +8,7 @@ from pull import set_tags
 from common import get_mp3_files, gr_genres, genre_dict, get_dirs, get_leaf_dirs, get_single_mp3
 from Levenshtein import distance
 import os
+import re
 import requests
 
 from googleapiclient.discovery import build
@@ -66,9 +67,24 @@ class MatchStyle(Enum):
     MANUAL = auto()
 
 
+def clean(title):
+    '''Removes parentheticals and subtitles to make searching easier'''
+    if '(' in title:
+        return title.split(' (')[0]
+    if ':' in title:
+        return title.split(':')[0]
+    if ':' in title:
+        return title.split(':')[0]
+    # For Audible books that are part of a series 'BookName-SeriesName, Book #'
+    pattern = r'(.*)-(.*), Book \d'
+    result = re.search(pattern,title)
+    if result:
+        return result.groups()[0]
+    return title
+
 def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
     authortag = tags['artist'][0]
-    booktitletag = tags['album'][0]
+    booktitletag = clean(tags['album'][0])
     if search_terms is None:
         search_terms = f'intitle:{booktitletag} inauthor:{authortag}'
     gb = build('books','v1',developerKey=GOOGLE_API_KEY)
@@ -142,6 +158,7 @@ def match(tags, match_style = MatchStyle.MANUAL, search_terms = None):
         elif response in ('n', 'N'):
             tags['composer'] = tags["artist"][0]
             tags['artist'] = '██████████ MISSING AUTHOR ██████████'
+            tags.save()
             new_terms = f'intitle:{booktitletag}'
             return match(tags, search_terms=new_terms, match_style=match_style)
         else:
@@ -283,11 +300,6 @@ def update_tags(items, match_style=MatchStyle.SEMIAUTO, dryrun=False):
         successes.append({'directory' : directory, 'book' : book})
         print()
     return {'failures' : failures, 'successes' : successes}
-
-
-def clean(title):
-    '''Strips series info off of goodreads results' titles '''
-    return title.split(' (')[0]
 
 def match_goodreads_version(gc, tags, match_style = MatchStyle.SEMIAUTO):
     authortag = tags['artist'][0]
