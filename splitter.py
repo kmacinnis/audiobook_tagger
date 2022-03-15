@@ -94,7 +94,7 @@ def make_cue_sheets(directory=SPLIT, replace_existing=False, verbose=True,
                         pad_option = PadTrackOption.AUTO, custom_padding = None):
     ''' Makes cue sheet to be used by mp3splt to split the file into chapters
     pad_option will determine whether to put in a new track at the beginning
-    of each book to separate out intro material from 
+    of each book to separate out intro material from the first chapter
     '''
     
     if (pad_option == PadTrackOption.CUSTOM) and (custom_padding is None):
@@ -159,7 +159,7 @@ def make_cue_sheets(directory=SPLIT, replace_existing=False, verbose=True,
                                 pad = 0
                             elif first_marker_name == f'{title} - 1':
                                 pad = 0
-                            elif second_marker_time < '0:30.000':
+                            elif second_marker_time < '0:45.000':
                                 pad = 0
                             else:
                                 pad = 1
@@ -178,19 +178,33 @@ def make_cue_sheets(directory=SPLIT, replace_existing=False, verbose=True,
                         markers[0].find('Time').text = '0:14.000'
                         # TODO: 14 seconds is a starting guess in above line
                         # need to make it work for custom padding
-                for m in markers.iter():
-                    if m.tag == 'Name':
-                        cuefile.write(f'    TITLE "{m.text}"\n')
-                        if verbose:
-                            print(f'{bullet} {m.text}')
-                    elif m.tag == 'Time':
-                        cuefile.write(f'    INDEX 01 {time_format(m.text)}\n')
-                    elif m.tag == 'Marker':
-                        cuefile.write(f'  TRACK {count:02} AUDIO\n')
-                        cuefile.write(f'    REM TRACK "{count:02}"\n')
-                        count += 1
-                # cuefile.write(f'  TRACK {count:02} AUDIO\n')
-                # cuefile.write(f'    INDEX 01 {time_format(tags.info.length)}\n')
+                
+                for marker in markers:
+                    for m in marker:
+                        if m.tag == 'Name':
+                            tracktitle = m.text
+                        elif m.tag == 'Time':
+                            tracktime = time_format(m.text)
+                    
+                    # Some books are split into tiny pieces. 
+                    # The track titles on these tend to start with nonbreaking spaces
+                    # I want to skip these, and break into chapters
+                    if tracktitle[:3] == chr(160)*3:
+                        continue
+                    trackindx = f'{count:02}'
+                    count += 1
+
+                    cuefile.write(f'    TITLE "{tracktitle}"\n')
+                    cuefile.write(f'    INDEX 01 {tracktime}\n')
+                    cuefile.write(f'  TRACK {trackindx} AUDIO\n')
+                    cuefile.write(f'    REM TRACK "{trackindx}"\n')
+
+                    if verbose:
+                        print(f'{bullet} {m.text}')
+
+
+                
+
                 cuefile.write('\n')
             first = False
 
