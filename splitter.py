@@ -194,10 +194,10 @@ def make_cue_sheets(directory=SPLIT, replace_existing=False, verbose=True,
                     trackindx = f'{count:02}'
                     count += 1
 
-                    cuefile.write(f'    TITLE "{tracktitle}"\n')
-                    cuefile.write(f'    INDEX 01 {tracktime}\n')
                     cuefile.write(f'  TRACK {trackindx} AUDIO\n')
                     cuefile.write(f'    REM TRACK "{trackindx}"\n')
+                    cuefile.write(f'    TITLE "{tracktitle}"\n')
+                    cuefile.write(f'    INDEX 01 {tracktime}\n')
 
                     if verbose:
                         print(f'{bullet} {m.text}')
@@ -216,6 +216,7 @@ def create_split_files(directory=SPLIT, replace_existing=False,
     msg = f'Creating split mp3 files in {directory}'
     print(msg)
     print('‾'*len(msg))
+    mp3s_with_errors = []
     for book in dirs:
         print(f'  ⦾ {book.name}')
         mp3files = list(get_mp3_files(book))
@@ -233,8 +234,10 @@ def create_split_files(directory=SPLIT, replace_existing=False,
                      cuefile.name,
                      mp3file.name,
                      ]
-            subprocess.call(args, cwd=book)
-            #TODO: Add handling of mp3split errors (call attention to bad cue sheets)
+            mp3spltprocess = subprocess.run(args, cwd=book)
+            if mp3spltprocess.returncode != 0:
+                mp3s_with_errors.append(mp3file)
+            
             if move_backups:
                 relpath = mp3file.relative_to(directory)
                 backup_mp3 = unique_path(backup_dir / relpath)
@@ -242,6 +245,14 @@ def create_split_files(directory=SPLIT, replace_existing=False,
                 os.renames(mp3file, backup_mp3)
                 os.renames(cuefile, backup_cue)
                 print(f" - {relpath}")
+                
+    if mp3s_with_errors:
+        print('✖✖✖ The following files had errors when attempting to split! ✖✖✖')
+        for errfile in mp3s_with_errors:
+            print('    ✖ {errfile.relative_to(directory)}')
+        return mp3s_with_errors
+    else:
+        print('\n\nAll files split with no errors!')
 
 def remove_markers(directory=None):
     if directory == None:
