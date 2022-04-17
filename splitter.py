@@ -226,12 +226,10 @@ def create_split_files(directory=SPLIT, replace_existing=False,
             if not cuefile.exists():
                 continue
             args = [ 'mp3splt',
-                     '-o',
-                     '@b - Track @N2 - @t',
-                     '-K',
-                     '-a',
-                     '-c',
-                     cuefile.name,
+                     '-K',                      # Keep original tags
+                     '-a','-p','gap=5',         # Auto-adjust within 5 seconds
+                     '-o','@b - Track @N2 - @t',   # Output naming format
+                     '-c', cuefile.name,        # use cuefile for splitpoints
                      mp3file.name,
                      ]
             mp3spltprocess = subprocess.run(args, cwd=book)

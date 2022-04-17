@@ -40,18 +40,32 @@ def join_all_split_bits(directory):
         join_split_bits(bookdir)
 
 
-def reencode(bookdir):
-    for chapter in bookdir.iterdir():
-        if chapter.suffix != '.mp3':
-            continue
-        name = chapter.name
-        newchapter = f'zz {name}'
-        ffmpeg_args = ['ffmpeg',
-                         '-i', name,
-                         '-codec:a', 'libmp3lame',
-                         '-b:a', '64k', 
-                         newchapter]
-        subprocess.run(ffmpeg_args, cwd=bookdir)
+def reencode(directory):
+    dirs = get_leaf_dirs(directory)
+    mp3s_with_errors = []
+    for bookdir in dirs:
+        for chapter in bookdir.iterdir():
+            if chapter.suffix != '.mp3':
+                continue
+            name = chapter.name
+            newchapter = f'zz {name}'
+            ffmpeg_args = ['ffmpeg',
+                             '-i', name,
+                             '-codec:a', 'libmp3lame',
+                             '-b:a', '64k', 
+                             newchapter]
+            subprocess.run(ffmpeg_args, cwd=bookdir)
+            reencodeprocess = subprocess.run(args, cwd=book)
+            if reencodeprocess.returncode != 0:
+                mp3s_with_errors.append(mp3file)
+    if mp3s_with_errors:
+        print('✖✖✖ The following files had errors when attempting to reencode! ✖✖✖')
+        for errfile in mp3s_with_errors:
+            print('    ✖ {errfile.relative_to(bookdir.parent.parent)}')
+        return mp3s_with_errors
+    else:
+        print('\n\nAll files reencoded with no errors!')
+    
 
 for bookdir in authordir.iterdir():
     reencode(bookdir)
