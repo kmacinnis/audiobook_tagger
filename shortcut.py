@@ -11,6 +11,7 @@ from splitter import create_split_files, make_cue_sheets, PadTrackOption
 from pathlib import Path
 from enum import Enum, auto
 
+pointless = 'THIS IS JUST HERE FOR NO REASON'
 
 
 class CoverOption(Enum):
